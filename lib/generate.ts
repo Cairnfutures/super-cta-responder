@@ -365,10 +365,23 @@ OUTPUT — raw JSON only, no code block wrapper:
   }
 }
 
-If writing in a language other than English, translate ALL label values above into that language. Keep the JSON keys in English.`
+If writing in a language other than English, translate ALL label values above into that language. Keep the JSON keys in English.
+
+Also include a "testimonial" object if a testimonial is provided below — translate the quote into the output language, keep the attribution as-is:
+{
+  "testimonial": {
+    "quote": "[translated quote]",
+    "attribution": "[unchanged original attribution]"
+  }
+}
+If no testimonial is provided, omit the "testimonial" key entirely.`
 
   const domainInstruction = domainMode
     ? `\n\nIMPORTANT: The company field contains a domain name (${company}). Infer the full organisation name, sector, size, and country from this domain. Use the inferred organisation name (not the raw domain) in all copy — in the title, in block 4 ("How this would work at [Org Name]"), and throughout. State your inference briefly in the title field, e.g. "An Introduction to ThingLink for Acme Corp" not "An Introduction to ThingLink for acme.com".`
+    : ''
+
+  const testimonialContext = testimonial && language !== 'English'
+    ? `\n\nTestimonial to translate:\nQuote: "${testimonial.quote}"\nAttribution: ${testimonial.customer_details || ''}`
     : ''
 
   const userPrompt = `Write a one-pager for:
@@ -376,7 +389,7 @@ If writing in a language other than English, translate ALL label values above in
 Name: ${name}
 Company: ${company}
 Role: ${role}
-Primary interest: ${interest}${contentContext}${sourceContext}${domainInstruction}
+Primary interest: ${interest}${contentContext}${sourceContext}${domainInstruction}${testimonialContext}
 
 Pick the single best-matching case study from the approved list for their sector.
 Tie all three bullets in block 4 to ${company}'s specific environment — their sites / wards / classrooms / stores / fleet (whatever fits their world).
@@ -413,7 +426,13 @@ Use ROI ranges from the approved list that best match ${interest}.${languageInst
     blockROI(parsed.roi || '', labels),
   ]
 
-  if (testimonial) blocks.push(blockTestimonial(testimonial))
+  if (testimonial) {
+    // Use Claude's translated version if available, otherwise fall back to DB version
+    const translatedTestimonial = parsed.testimonial?.quote
+      ? { ...testimonial, quote: parsed.testimonial.quote }
+      : testimonial
+    blocks.push(blockTestimonial(translatedTestimonial))
+  }
   blocks.push(blockNextStep(company, role, interest, labels))
 
   const printStyles = `<style>@media print{.tl-screen-embed{display:none!important;}.tl-print-thumb{display:block!important;}.tl-no-print{display:none!important;}}</style>`
