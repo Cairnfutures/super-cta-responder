@@ -253,6 +253,8 @@ TONE & STYLE:
 - Short paragraphs (2–4 sentences). Use H2 headings to structure sections clearly.
 - Lead with outcomes for their specific role, not feature lists
 - Avoid clichés: "cutting-edge", "game-changing", "seamless", "revolutionary", "transformative"
+- Avoid em dashes (—) entirely. Use full stops or commas instead.
+- Avoid hyphens to join words mid-sentence (e.g. write "no code" not "no-code", "real world" not "real-world"). Only use hyphens in proper product names where required.
 - Write as if you genuinely understand the challenges of their profession
 
 STRUCTURE — follow this order:
