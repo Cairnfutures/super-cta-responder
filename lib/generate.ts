@@ -83,9 +83,20 @@ async function fetchTestimonials(interest: string): Promise<Testimonial[]> {
 
   console.log('[fetchTestimonials] sectors:', sectors, '| count:', data?.length ?? 0, '| error:', error)
 
-  if (!data || data.length === 0) return []
+  // Fallback: if sector filter returns nothing, fetch any testimonials
+  let rows = data || []
+  if (rows.length === 0) {
+    const { data: fallbackData, error: fallbackError } = await supabaseAdmin
+      .from('testimonials')
+      .select('quote, customer_details, case_study_url, sector')
+      .limit(20)
+    console.log('[fetchTestimonials] fallback count:', fallbackData?.length ?? 0, '| error:', fallbackError)
+    rows = fallbackData || []
+  }
 
-  const shuffled = [...data].sort(() => Math.random() - 0.5)
+  if (rows.length === 0) return []
+
+  const shuffled = [...rows].sort(() => Math.random() - 0.5)
   const seen = new Set<string>()
   const selected: Testimonial[] = []
   for (const t of shuffled) {
@@ -256,9 +267,10 @@ TONE & STYLE:
 - Avoid em dashes (—) entirely. Use full stops or commas instead.
 - Avoid hyphens to join words mid-sentence (e.g. write "no code" not "no-code", "real world" not "real-world"). Only use hyphens in proper product names where required.
 - Write as if you genuinely understand the challenges of their profession
+- Do NOT open with "Hi [name]", "Hello [name]", "Dear [name]" or any salutation. Start directly with the first sentence of content.
 
 STRUCTURE — follow this order:
-1. **Opening paragraph** — address the prospect by name, acknowledge their role and the specific challenge in their interest area. Make it feel like a conversation, not a mailshot.
+1. **Opening paragraph** — weave the prospect's first name naturally into the first sentence or two, acknowledge their role and the specific challenge in their interest area. Make it feel like a conversation, not a mailshot. No greeting line — dive straight in.
 2. **## [Challenge heading]** — name the real pain point this segment faces. Be specific. One paragraph.
 3. **## How ThingLink Can Help** — 2–3 features most relevant to their role and interest, each with a concrete outcome. Not a feature dump — show what changes for them.
 4. **## What Results Look Like** — weave in the provided testimonials and 1–2 relevant proof points (UNESCO Prize, Keele University stat, WCAG compliance) where they fit naturally. Reference a named case study only if the sector matches.
