@@ -44,18 +44,18 @@ const INTEREST_TO_SECTORS: Record<string, string[]> = {
   'Other':                                ['corporate', 'higher_edu'],
 }
 
-// Map lead interest → example industry keywords
+// Map lead interest → example industry keywords (matched to actual DB values)
 const INTEREST_TO_INDUSTRY: Record<string, string[]> = {
-  'K-12 Education':                      ['education', 'school', 'k-12'],
-  'Higher Education':                     ['education', 'university', 'higher'],
-  'Corporate Learning & Development':     ['corporate', 'training', 'workplace', 'manufacturing'],
-  'Healthcare Training':                  ['healthcare', 'medical', 'health', 'hospital'],
-  'Sales Enablement':                     ['sales', 'retail', 'corporate'],
-  'Onboarding & HR':                      ['corporate', 'workplace', 'manufacturing'],
-  'Customer Education':                   ['education', 'training', 'corporate'],
-  'Tourism & Heritage':                   ['tourism', 'museum', 'heritage', 'cultural'],
-  'Government & Public Sector':           ['government', 'public', 'utilities'],
-  'Other':                                ['training', 'learning', 'education'],
+  'K-12 Education':                      ['k12', 'Education'],
+  'Higher Education':                     ['Higher Ed', 'Education', 'Vocational'],
+  'Corporate Learning & Development':     ['General Enterprise', 'Manufacturing', 'Technology'],
+  'Healthcare Training':                  ['Healthcare'],
+  'Sales Enablement':                     ['General Enterprise', 'Retail', 'Technology'],
+  'Onboarding & HR':                      ['General Enterprise', 'Manufacturing'],
+  'Customer Education':                   ['General Enterprise', 'Technology', 'Education'],
+  'Tourism & Heritage':                   ['Museum', 'Travel', 'Hospitality', 'Culture'],
+  'Government & Public Sector':           ['Energy', 'Water', 'Charity', 'Transportation'],
+  'Other':                                ['General Enterprise', 'Education'],
 }
 
 interface Testimonial {
