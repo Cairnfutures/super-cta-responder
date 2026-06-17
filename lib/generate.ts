@@ -88,6 +88,15 @@ async function fetchTestimonials(interest: string): Promise<Testimonial[]> {
 }
 
 // ─────────────────────────────────────────
+// Normalise row — column may be embed_code or embed-code
+// ─────────────────────────────────────────
+function normaliseExample(row: any): Example | null {
+  const embed = row['embed_code'] ?? row['embed-code'] ?? null
+  if (!embed) return null
+  return { name: row.name ?? '', embed_code: embed }
+}
+
+// ─────────────────────────────────────────
 // Fetch relevant ThingLink example embed
 // ─────────────────────────────────────────
 async function fetchExample(interest: string): Promise<Example | null> {
@@ -98,26 +107,24 @@ async function fetchExample(interest: string): Promise<Example | null> {
     for (const keyword of keywords) {
       const { data } = await supabaseAdmin
         .from('examples')
-        .select('name, embed_code')
+        .select('*')
         .ilike(column, `%${keyword}%`)
-        .not('embed_code', 'is', null)
         .limit(10)
 
-      if (data && data.length > 0) {
-        return data[Math.floor(Math.random() * data.length)]
-      }
+      const rows = (data || []).map(normaliseExample).filter(Boolean) as Example[]
+      if (rows.length > 0) return rows[Math.floor(Math.random() * rows.length)]
     }
   }
 
-  // Fallback — any example with an embed code
+  // Fallback — any example
   const { data } = await supabaseAdmin
     .from('examples')
-    .select('name, embed_code')
-    .not('embed_code', 'is', null)
-    .limit(10)
+    .select('*')
+    .limit(20)
 
-  if (!data || data.length === 0) return null
-  return data[Math.floor(Math.random() * data.length)]
+  const rows = (data || []).map(normaliseExample).filter(Boolean) as Example[]
+  if (rows.length === 0) return null
+  return rows[Math.floor(Math.random() * rows.length)]
 }
 
 // ─────────────────────────────────────────
@@ -184,33 +191,93 @@ export async function generateResponse(input: LeadInput): Promise<GeneratedRespo
       otherTestimonials.map(t => `- "${t.quote}" — ${t.customer_details || 'ThingLink customer'}`).join('\n')
     : ''
 
-  const systemPrompt = `You are a senior ThingLink solutions consultant writing a personalised one-pager for a prospect who has expressed interest.
+  const systemPrompt = `You are a senior ThingLink solutions consultant writing a personalised one-pager for a prospect. Your goal is to create something they'll genuinely find useful — specific, credible, and worth forwarding to a budget holder.
 
-ThingLink is a platform for creating interactive, immersive learning and communication experiences — including interactive images, videos, 360° tours, virtual environments, and AI-assisted scenario-based learning.
+ABOUT THINGLINK:
+ThingLink is an award-winning platform for creating interactive, immersive learning and communication experiences. Used in 150+ countries, it lets educators, trainers, and organisations build interactive images, videos, 360° scenes, virtual environments, branching scenarios, and AR experiences — all without coding. Winner of the UNESCO ICT in Education Prize 2018.
 
-YOUR TONE:
-- Warm, direct, and consultative — you're talking to a real person, not writing a brochure
-- Confident but not salesy — focus on their specific challenge, not generic product features
-- Use the prospect's first name occasionally to keep it personal
-- Short paragraphs (2–4 sentences). Use H2 headings to break sections.
-- Avoid jargon. Explain things clearly.
+PRODUCTS & FEATURES — use these exact names:
+- ThingLink Media Editor: The core creation tool — add hotspots, quizzes, video, audio, and links to any image, 360° scene, or video.
+- ThingLink Scenario Builder: Branching decision-tree scenarios where learners navigate choices and consequences. Ideal for safety training, clinical skills, customer service, and complex procedures.
+- Pano to 360°: Convert any panoramic photo into a fully interactive 360° immersive scene in minutes.
+- ThingLink AR: Augmented reality experiences learners access on any mobile device — no headset required.
+- AI-Assisted Course Creation: Use AI to generate interactive course outlines, quiz questions, and structured learning pathways from existing content.
+- Immersive Reader: Built-in accessibility and translation tool — supports 60+ languages, text-to-speech, dyslexia fonts, and reading comprehension aids.
+- Accessibility Player: WCAG 2.2 AA compliant playback. All content is fully accessible.
+- LTI/SSO Integration: Works natively with Canvas, Blackboard, Moodle, Google Classroom, and Microsoft Teams — grades sync automatically.
+- 360° Image Library: Shared library of professional 360° environments and scene templates to accelerate creation.
+- Analytics & Checkpoints: Track learner progress, completion rates, and knowledge gaps through embedded interactive checkpoints.
 
-CONTENT RULES:
-- Address their specific role and interest area throughout
-- Use the provided testimonials as social proof — quote them exactly as given, attribute them correctly
-- Do NOT invent statistics or case studies beyond what is provided
-- Do NOT use horizontal rules (---) anywhere
-- Reference ThingLink features that are genuinely relevant to their context
-- Do NOT invent URLs — only use https://www.thinglink.com/demo as a CTA link
+PLANS BY SEGMENT:
+- K-12: Essential (core creation tools, virtual field trips), Enhanced (AI-assisted course creation, 360° video, AR, SSO/LTI), Staff Training (professional development across a school or district)
+- Higher Education / Further Education / VET: Department, College/School, Campus-Wide — scaling from a single faculty to institution-wide rollout
+- Business / Corporate / Healthcare: Custom enterprise plans with advanced analytics, SSO, dedicated onboarding, and support
+
+PROOF POINTS — use these where naturally relevant, never invent new ones:
+- Winner of UNESCO ICT in Education Prize 2018
+- WCAG 2.2 AA compliant — content is fully accessible to all learners
+- Research at Keele University showed 96% positive student feedback on ThingLink-enhanced learning
+- Works on any device: VR headsets, desktop, tablets, and mobile
+- Integrates with Canvas, Blackboard, Moodle, Google for Education, Microsoft, and Canva
+- 60+ languages via Immersive Reader — powerful for multilingual or international cohorts
+- Used in 150+ countries
+
+REAL CASE STUDIES — only reference these by name, and only when the prospect's sector matches:
+- Gradia (Finland): Vocational institute — interactive 360° industrial workshops and safety training
+- Energy Training Academy: ThingLink Scenario Builder for energy sector safety and compliance training
+- Karelia University of Applied Sciences: 360° environments for hands-on vocational learning
+- West Chester University: Immersive learning experiences across university departments
+- HyGGe: Immersive social care and health education scenarios
+- CAST: Accessible, inclusive educational content
+- Keele University: Research showed 96% positive student feedback (Higher Ed context)
+If the prospect's sector doesn't match any of the above, describe outcomes generically (e.g. "one vocational college in Finland") — do not invent named examples.
+
+TONE & STYLE:
+- Warm, direct, and consultative — you're a specialist talking to a real person, not writing a brochure
+- Use the prospect's first name once or twice to keep it human
+- Short paragraphs (2–4 sentences). Use H2 headings to structure sections clearly.
+- Lead with outcomes for their specific role, not feature lists
+- Avoid clichés: "cutting-edge", "game-changing", "seamless", "revolutionary", "transformative"
+- Write as if you genuinely understand the challenges of their profession
+
+STRUCTURE — follow this order:
+1. **Opening paragraph** — address the prospect by name, acknowledge their role and the specific challenge in their interest area. Make it feel like a conversation, not a mailshot.
+2. **## [Challenge heading]** — name the real pain point this segment faces. Be specific. One paragraph.
+3. **## How ThingLink Can Help** — 2–3 features most relevant to their role and interest, each with a concrete outcome. Not a feature dump — show what changes for them.
+4. **## What Results Look Like** — weave in the provided testimonials and 1–2 relevant proof points (UNESCO Prize, Keele University stat, WCAG compliance) where they fit naturally. Reference a named case study only if the sector matches.
+5. **## Getting Started** — 1 paragraph on the most relevant plan tier(s) for their context, plus a warm next-step invitation (e.g. a 30-minute live demo where you build an example in their context together).
+
+HARD RULES:
+- Do NOT use horizontal rules (---) anywhere in the output
+- Do NOT invent statistics, case studies, or URLs not listed above
+- Do NOT include https://www.thinglink.com/demo in the body — the CTA block is added separately
+- Do NOT mention a contact person's email address — handled elsewhere
+- 500–700 words total for the one_pager_md
 
 OUTPUT FORMAT: Respond with a single valid JSON object with these exact keys:
 {
-  "title": "string — personalised document title",
+  "title": "string — MUST follow this exact format: 'An Introduction to ThingLink for [Company Name]' — replace [Company Name] with the prospect's actual company name, nothing else",
   "one_pager_md": "string — the full one-pager in markdown, 500–700 words, with H2 headings"
 }`
 
   const contentContext = thinglinkContent ? `\nThingLink content they viewed: ${thinglinkContent}` : ''
   const sourceContext = source ? `\nCampaign / source: ${source}` : ''
+
+  // Segment-specific feature suggestions to steer Claude
+  const segmentFeatureHints: Record<string, string> = {
+    'K-12 Education': 'Focus on: virtual field trips (Pano to 360°), AR tools for contextual learning, branching scenarios for critical thinking, Immersive Reader for diverse learners, LTI integration with school LMS. Relevant plans: Essential, Enhanced, Staff Training.',
+    'Higher Education': 'Focus on: AI-Assisted Course Creation, Scenario Builder for active learning, Immersive Reader (60+ languages for international students), WCAG 2.2 AA compliance, LTI integration. Relevant plans: Department, College/School, Campus-Wide.',
+    'Corporate Learning & Development': 'Focus on: Scenario Builder for realistic workplace situations, AI-assisted course creation from existing materials, 360° workplace tours, analytics to track completion, SSO integration with corporate systems. Mention Gradia or Energy Training Academy case study if appropriate.',
+    'Healthcare Training': 'Focus on: Scenario Builder for clinical decision-making, 360° ward/facility tours for orientation, accessible content (WCAG 2.2 AA), AI-assisted course creation. Reference HyGGe or CAST if relevant.',
+    'Sales Enablement': 'Focus on: interactive product demos, scenario-based role-play training, 360° showroom or facility tours, analytics on engagement.',
+    'Onboarding & HR': 'Focus on: 360° workplace tours for remote/hybrid onboarding, interactive safety modules, branching scenarios for policy training, analytics and completion tracking, LMS integration.',
+    'Customer Education': 'Focus on: interactive how-to content, 360° product or facility tours, multilingual support via Immersive Reader, embeddable content for any platform.',
+    'Tourism & Heritage': 'Focus on: 360° virtual tours, multilingual visitor guides via Immersive Reader (60+ languages), interactive maps and exhibits, accessible on any device with no app download.',
+    'Government & Public Sector': 'Focus on: accessible content (WCAG 2.2 AA), interactive training modules, 360° site familiarisation, multilingual support, analytics.',
+    'Other': 'Focus on the 2–3 ThingLink features most relevant to their stated role. Prioritise Scenario Builder, AI-Assisted Course Creation, and LMS integration.',
+  }
+
+  const featureHint = segmentFeatureHints[interest] || segmentFeatureHints['Other']
 
   const userPrompt = `Write a personalised ThingLink one-pager for this prospect:
 
@@ -218,14 +285,18 @@ Name: ${name}
 Company: ${company}
 Role: ${role}
 Primary interest: ${interest}${contentContext}${sourceContext}
+
 ${testimonialsBlock}
 
-The one-pager should:
-- Open by addressing ${firstName} directly and acknowledging their role at ${company}
-- Explain how ThingLink is relevant to "${interest}" in 2–3 focused sections
-- Each H2 section tackles a real challenge for a "${role}" and shows how ThingLink helps
-- Include one section on getting started / next steps
-- Be 500–700 words total`
+FEATURE FOCUS FOR THIS SEGMENT:
+${featureHint}
+
+INSTRUCTIONS:
+1. Open by addressing ${firstName} directly — acknowledge their specific context as a ${role} at ${company} and name the challenge their segment faces. Make it feel like you know their world.
+2. For "How ThingLink Can Help" — use the feature focus above. Describe 2–3 features with concrete outcomes for their role, not abstract capabilities. E.g. not "Scenario Builder creates branching scenarios" but "With Scenario Builder, your team can practice responding to difficult customer situations in a safe environment — before they face it in real life."
+3. For "What Results Look Like" — weave in the provided customer quotes naturally. Add 1–2 proof points (UNESCO Prize 2018, 96% positive feedback from Keele University research, WCAG 2.2 AA) where they fit. Only name a case study from the approved list if the sector matches.
+4. For "Getting Started" — name the specific plan tier(s) suited to ${company}'s context. Close with a warm, specific invitation: e.g. "I'd love to show you a 30-minute live demo — we can build an example in your context together."
+5. Write 500–700 words total. Every sentence should earn its place.`
 
   const response = await anthropic.messages.create({
     model: GENERATION_MODEL,
@@ -268,7 +339,7 @@ The one-pager should:
   body = body + '\n\n' + CTA_BLOCK
 
   return {
-    title: parsed.title || `ThingLink for ${company}`,
+    title: parsed.title || `An Introduction to ThingLink for ${company}`,
     one_pager_md: body,
   }
 }

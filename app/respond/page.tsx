@@ -2,6 +2,7 @@
 
 import { useState, useMemo } from 'react'
 import { marked } from '@/lib/marked'
+import Header from '@/components/Header'
 
 const C = {
   bg:        '#f5f5f7',
@@ -105,21 +106,12 @@ export default function RespondPage() {
   return (
     <div style={{ minHeight: '100vh', background: C.bg, fontFamily: C.sans }}>
 
-      {/* Top bar */}
-      <div style={{ borderBottom: '3px solid transparent', borderImage: `${C.grad} 1`, background: C.surface, padding: '0 28px', height: 54, display: 'flex', alignItems: 'center', justifyContent: 'space-between', position: 'sticky', top: 0, zIndex: 100 }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          <div style={{ width: 27, height: 27, borderRadius: 7, background: C.grad, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <span style={{ color: '#fff', fontSize: 14, fontWeight: 700 }}>T</span>
-          </div>
-          <span style={{ fontWeight: 700, fontSize: 15, color: C.text, letterSpacing: '-0.01em' }}>Super CTA Responder</span>
-        </div>
-        {result && (
-          <a href={`/result/${result.id}`} target="_blank" rel="noopener noreferrer"
-            style={{ fontSize: 13, fontWeight: 600, color: C.textSub, textDecoration: 'none', border: `1px solid ${C.border}`, borderRadius: 6, padding: '5px 12px' }}>
-            Share link ↗
-          </a>
-        )}
-      </div>
+      <Header
+        nav={[
+          { label: 'All responses', href: '/responses' },
+          ...(result ? [{ label: 'Open ↗', href: `/result/${result.id}`, ghost: true }] : []),
+        ]}
+      />
 
       {/* Two-column layout */}
       <div style={{ display: 'flex', gap: 20, padding: '24px 24px', maxWidth: 1200, margin: '0 auto' }}>
@@ -260,7 +252,7 @@ export default function RespondPage() {
 
                 {tab === 'html' && (
                   <>
-                    <p style={{ fontSize: 13, color: C.textMuted, margin: '0 0 12px' }}>Click to select all, then paste into your CMS or email tool.</p>
+                    <p style={{ fontSize: 13, color: C.textMuted, margin: '0 0 12px' }}>Click to select all, then paste into HubSpot or your email tool. To save as PDF, use Preview tab + browser Print → Save as PDF.</p>
                     <textarea readOnly value={htmlBody} rows={30}
                       onClick={e => (e.target as HTMLTextAreaElement).select()}
                       style={{ width: '100%', border: `1px solid ${C.border}`, borderRadius: 8, padding: '10px 14px', fontSize: 12, fontFamily: C.mono, color: C.textSub, background: C.bg, resize: 'vertical' as const, cursor: 'text', outline: 'none', lineHeight: 1.6, boxSizing: 'border-box' as const }} />
@@ -268,11 +260,11 @@ export default function RespondPage() {
                 )}
               </div>
 
-              {/* Share nudge */}
+              {/* Internal share nudge */}
               <div style={{ ...card, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16 }}>
                 <div>
-                  <p style={{ fontSize: 14, fontWeight: 600, color: C.text, margin: '0 0 2px' }}>Share with {form.name}</p>
-                  <p style={{ fontSize: 13, color: C.textSub, margin: 0 }}>Send them this permanent link to view their personalised overview.</p>
+                  <p style={{ fontSize: 14, fontWeight: 600, color: C.text, margin: '0 0 2px' }}>Link to Share Draft</p>
+                  <p style={{ fontSize: 13, color: C.textSub, margin: 0 }}>Share with a colleague or reseller — they can edit, save, and export the HTML.</p>
                 </div>
                 <div style={{ display: 'flex', gap: 8, flexShrink: 0 }}>
                   <CopyButton getText={() => `${typeof window !== 'undefined' ? window.location.origin : ''}/result/${result.id}`} text='⎘ Copy link' />

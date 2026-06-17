@@ -1,5 +1,6 @@
 import { supabaseAdmin } from '@/lib/supabase'
 import Link from 'next/link'
+import Header from '@/components/Header'
 
 export const dynamic = 'force-dynamic'
 
@@ -23,18 +24,7 @@ export default async function ResponsesPage() {
   return (
     <div style={{ minHeight: '100vh', background: C.bg, fontFamily: C.sans }}>
 
-      {/* Top bar */}
-      <div style={{ borderBottom: '3px solid transparent', borderImage: `${C.grad} 1`, background: C.surface, padding: '0 28px', height: 54, display: 'flex', alignItems: 'center', justifyContent: 'space-between', position: 'sticky', top: 0, zIndex: 100 }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          <div style={{ width: 27, height: 27, borderRadius: 7, background: C.grad, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <span style={{ color: '#fff', fontSize: 14, fontWeight: 700 }}>T</span>
-          </div>
-          <span style={{ fontWeight: 700, fontSize: 15, color: C.text, letterSpacing: '-0.01em' }}>Super CTA Responder</span>
-        </div>
-        <Link href="/respond" style={{ fontSize: 13, fontWeight: 600, color: '#fff', background: C.grad, borderRadius: 20, padding: '6px 16px', textDecoration: 'none' }}>
-          + New one-pager
-        </Link>
-      </div>
+      <Header nav={[{ label: '+ New one-pager', href: '/respond', primary: true }]} />
 
       <div style={{ maxWidth: 860, margin: '0 auto', padding: '32px 24px' }}>
         <h1 style={{ fontSize: 22, fontWeight: 800, color: C.text, margin: '0 0 24px', letterSpacing: '-0.02em' }}>
