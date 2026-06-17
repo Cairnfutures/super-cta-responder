@@ -66,11 +66,31 @@ export default function RespondPage() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [result, setResult] = useState<{ id: string; title: string; onePagerMd: string } | null>(null)
+  const [editTitle, setEditTitle] = useState('')
+  const [editBody, setEditBody] = useState('')
+  const [saving, setSaving] = useState(false)
+  const [saved, setSaved] = useState(false)
   const [tab, setTab] = useState<Tab>('preview')
 
   function set(k: string, v: string) { setForm(f => ({ ...f, [k]: v })) }
 
-  const htmlBody = useMemo(() => result ? (marked.parse(result.onePagerMd) as string) : '', [result])
+  const htmlBody = useMemo(() => marked.parse(editBody) as string, [editBody])
+
+  async function handleSave() {
+    if (!result) return
+    setSaving(true)
+    try {
+      await fetch(`/api/response/${result.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ title: editTitle, one_pager_md: editBody }),
+      })
+      setSaved(true)
+      setTimeout(() => setSaved(false), 2500)
+    } finally {
+      setSaving(false)
+    }
+  }
 
   async function handleGenerate() {
     if (!form.name || !form.company || !form.role || !form.interest) {
@@ -89,6 +109,8 @@ export default function RespondPage() {
       const data = await res.json()
       if (!res.ok) throw new Error(data.error || 'Generation failed')
       setResult({ id: data.id, title: data.title, onePagerMd: data.one_pager_md })
+      setEditTitle(data.title)
+      setEditBody(data.one_pager_md)
       setTab('preview')
     } catch (err: any) {
       setError(err.message)
@@ -211,7 +233,8 @@ export default function RespondPage() {
             <>
               {/* Title + tags */}
               <div style={{ marginBottom: 16 }}>
-                <h1 style={{ fontSize: 22, fontWeight: 800, color: C.text, margin: '0 0 8px', letterSpacing: '-0.02em', lineHeight: 1.2 }}>{result.title}</h1>
+                <input value={editTitle} onChange={e => setEditTitle(e.target.value)}
+                  style={{ ...field, fontSize: 22, fontWeight: 800, border: 'none', borderBottom: `1px solid ${C.border}`, borderRadius: 0, padding: '0 0 12px', letterSpacing: '-0.02em', marginBottom: 8 }} />
                 <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' as const }}>
                   {[form.company, form.role, form.interest].filter(Boolean).map((tag, i) => (
                     <span key={i} style={{ fontSize: 12, color: C.textSub, background: C.bg, border: `1px solid ${C.border}`, borderRadius: 20, padding: '3px 10px' }}>{tag}</span>
@@ -236,7 +259,11 @@ export default function RespondPage() {
                     ))}
                   </div>
                   {tab === 'html' && <CopyButton getText={() => htmlBody} text='⎘ Copy HTML' />}
-                  {tab === 'markdown' && <CopyButton getText={() => result.onePagerMd} text='⎘ Copy markdown' />}
+                  {tab === 'markdown' && <CopyButton getText={() => editBody} text='⎘ Copy markdown' />}
+                  <button onClick={handleSave} disabled={saving}
+                    style={{ fontSize: 12, padding: '5px 14px', border: 'none', borderRadius: 6, color: '#fff', background: saved ? '#27ae60' : C.grad, cursor: saving ? 'not-allowed' : 'pointer', fontFamily: C.sans, fontWeight: 600 }}>
+                    {saved ? '✓ Saved' : saving ? 'Saving…' : 'Save'}
+                  </button>
                 </div>
 
                 {tab === 'preview' && (
@@ -245,9 +272,8 @@ export default function RespondPage() {
                 )}
 
                 {tab === 'markdown' && (
-                  <textarea readOnly value={result.onePagerMd} rows={30}
-                    onClick={e => (e.target as HTMLTextAreaElement).select()}
-                    style={{ width: '100%', border: `1px solid ${C.border}`, borderRadius: 8, padding: '10px 14px', fontSize: 13, fontFamily: C.mono, color: C.textSub, background: C.bg, resize: 'vertical' as const, cursor: 'text', outline: 'none', lineHeight: 1.7, boxSizing: 'border-box' as const }} />
+                  <textarea value={editBody} onChange={e => setEditBody(e.target.value)} rows={30}
+                    style={{ width: '100%', border: `1px solid ${C.border}`, borderRadius: 8, padding: '10px 14px', fontSize: 13, fontFamily: C.mono, color: C.text, background: C.surface, resize: 'vertical' as const, outline: 'none', lineHeight: 1.7, boxSizing: 'border-box' as const }} />
                 )}
 
                 {tab === 'html' && (
