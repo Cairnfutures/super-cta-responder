@@ -4,23 +4,26 @@ import { useState, useMemo } from 'react'
 import { marked } from '@/lib/marked'
 
 const C = {
-  bg:       '#f5f5f7',
-  surface:  '#ffffff',
-  border:   '#e4e4e9',
-  text:     '#111118',
-  textSub:  '#6b6b80',
-  textMuted:'#9999aa',
-  sans:     '-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
-  mono:     'ui-monospace, SFMono-Regular, Menlo, monospace',
-  grad:     'linear-gradient(135deg,#FFB347 0%,#FF7B8B 35%,#CC80E0 65%,#5CE8D4 100%)',
+  bg:        '#f5f5f7',
+  surface:   '#ffffff',
+  border:    '#e4e4e9',
+  text:      '#111118',
+  textSub:   '#6b6b80',
+  textMuted: '#9999aa',
+  sans:      '-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
+  mono:      'ui-monospace, SFMono-Regular, Menlo, monospace',
+  grad:      'linear-gradient(135deg,#FFB347 0%,#FF7B8B 35%,#CC80E0 65%,#5CE8D4 100%)',
+}
+
+const field: React.CSSProperties = {
+  width: '100%', border: `1px solid ${C.border}`, borderRadius: 8,
+  padding: '10px 14px', fontSize: 15, color: C.text, background: C.surface,
+  outline: 'none', fontFamily: C.sans, boxSizing: 'border-box' as const, lineHeight: 1.5,
 }
 
 const card: React.CSSProperties = {
-  background: C.surface,
-  border: `1px solid ${C.border}`,
-  borderRadius: 12,
-  padding: '20px 24px',
-  marginBottom: 16,
+  background: C.surface, border: `1px solid ${C.border}`,
+  borderRadius: 12, padding: '20px 24px', marginBottom: 16,
 }
 
 const sectionLabel: React.CSSProperties = {
@@ -33,8 +36,7 @@ type Tab = 'preview' | 'markdown' | 'html'
 function CopyButton({ getText, text = '⎘ Copy' }: { getText: () => string; text?: string }) {
   const [copied, setCopied] = useState(false)
   return (
-    <button
-      onClick={() => { navigator.clipboard.writeText(getText()); setCopied(true); setTimeout(() => setCopied(false), 2000) }}
+    <button onClick={() => { navigator.clipboard.writeText(getText()); setCopied(true); setTimeout(() => setCopied(false), 2000) }}
       style={{ fontSize: 12, padding: '5px 14px', border: `1px solid ${C.border}`, borderRadius: 6, color: C.textSub, background: C.bg, cursor: 'pointer', fontFamily: C.sans, fontWeight: 500 }}>
       {copied ? '✓ Copied' : text}
     </button>
@@ -42,16 +44,21 @@ function CopyButton({ getText, text = '⎘ Copy' }: { getText: () => string; tex
 }
 
 interface Props {
+  id: string
   title: string
   onePagerMd: string
   lead: { name: string; company: string; role: string; interest: string }
   createdAt: string
 }
 
-export default function ResultViewer({ title, onePagerMd, lead, createdAt }: Props) {
+export default function ResultViewer({ id, title: initialTitle, onePagerMd: initialMd, lead, createdAt }: Props) {
+  const [title, setTitle] = useState(initialTitle)
+  const [body, setBody] = useState(initialMd)
   const [tab, setTab] = useState<Tab>('preview')
+  const [saving, setSaving] = useState(false)
+  const [saved, setSaved] = useState(false)
 
-  const htmlBody = useMemo(() => marked.parse(onePagerMd) as string, [onePagerMd])
+  const htmlBody = useMemo(() => marked.parse(body) as string, [body])
 
   const tabs: { id: Tab; label: string }[] = [
     { id: 'preview',  label: 'Preview' },
@@ -59,13 +66,29 @@ export default function ResultViewer({ title, onePagerMd, lead, createdAt }: Pro
     { id: 'html',     label: 'HTML' },
   ]
 
+  async function handleSave() {
+    setSaving(true)
+    try {
+      await fetch(`/api/response/${id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ title, one_pager_md: body }),
+      })
+      setSaved(true)
+      setTimeout(() => setSaved(false), 2500)
+    } finally {
+      setSaving(false)
+    }
+  }
+
   return (
     <div style={{ fontFamily: C.sans }}>
 
-      {/* Title */}
-      <div style={{ marginBottom: 24 }}>
-        <h1 style={{ fontSize: 26, fontWeight: 800, color: C.text, margin: '0 0 8px', letterSpacing: '-0.02em', lineHeight: 1.2 }}>{title}</h1>
-        <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap' as const }}>
+      {/* Editable title */}
+      <div style={{ marginBottom: 20 }}>
+        <input value={title} onChange={e => setTitle(e.target.value)}
+          style={{ ...field, fontSize: 24, fontWeight: 800, border: 'none', borderBottom: `1px solid ${C.border}`, borderRadius: 0, padding: '0 0 12px', letterSpacing: '-0.02em' }} />
+        <div style={{ display: 'flex', gap: 8, marginTop: 10, flexWrap: 'wrap' as const }}>
           {[lead.company, lead.role, lead.interest].filter(Boolean).map((tag, i) => (
             <span key={i} style={{ fontSize: 12, color: C.textSub, background: C.bg, border: `1px solid ${C.border}`, borderRadius: 20, padding: '3px 10px' }}>{tag}</span>
           ))}
@@ -88,59 +111,43 @@ export default function ResultViewer({ title, onePagerMd, lead, createdAt }: Pro
               </button>
             ))}
           </div>
-          {tab === 'html' && <CopyButton getText={() => htmlBody} text='⎘ Copy HTML' />}
-          {tab === 'markdown' && <CopyButton getText={() => onePagerMd} text='⎘ Copy markdown' />}
+          <div style={{ display: 'flex', gap: 8 }}>
+            {tab === 'html' && <CopyButton getText={() => htmlBody} text='⎘ Copy HTML' />}
+            {tab === 'markdown' && <CopyButton getText={() => body} text='⎘ Copy markdown' />}
+            <button onClick={handleSave} disabled={saving}
+              style={{ fontSize: 12, padding: '5px 14px', border: 'none', borderRadius: 6, color: '#fff', background: saved ? '#27ae60' : C.grad, cursor: saving ? 'not-allowed' : 'pointer', fontFamily: C.sans, fontWeight: 600 }}>
+              {saved ? '✓ Saved' : saving ? 'Saving…' : 'Save'}
+            </button>
+          </div>
         </div>
 
         {tab === 'preview' && (
-          <div
-            style={{ fontSize: 15, color: C.text, lineHeight: 1.85 }}
-            dangerouslySetInnerHTML={{ __html: htmlBody }}
-            suppressHydrationWarning
-          />
+          <div style={{ fontSize: 15, color: C.text, lineHeight: 1.85 }}
+            dangerouslySetInnerHTML={{ __html: htmlBody }} suppressHydrationWarning />
         )}
 
         {tab === 'markdown' && (
-          <textarea
-            readOnly
-            value={onePagerMd}
-            rows={30}
-            onClick={e => (e.target as HTMLTextAreaElement).select()}
-            style={{
-              width: '100%', border: `1px solid ${C.border}`, borderRadius: 8,
-              padding: '10px 14px', fontSize: 13, fontFamily: C.mono, color: C.textSub,
-              background: C.bg, resize: 'vertical' as const, cursor: 'text',
-              outline: 'none', lineHeight: 1.7, boxSizing: 'border-box' as const,
-            }}
-          />
+          <textarea value={body} onChange={e => setBody(e.target.value)} rows={30}
+            style={{ ...field, fontFamily: C.mono, fontSize: 13, lineHeight: 1.7, resize: 'vertical' as const }} />
         )}
 
         {tab === 'html' && (
           <>
-            <p style={{ fontSize: 13, color: C.textMuted, margin: '0 0 12px' }}>Click to select all, then paste into your CMS or email tool.</p>
-            <textarea
-              readOnly
-              value={htmlBody}
-              rows={30}
+            <p style={{ fontSize: 13, color: C.textMuted, margin: '0 0 12px' }}>Click to select all, then paste into HubSpot or your CMS.</p>
+            <textarea readOnly value={htmlBody} rows={30}
               onClick={e => (e.target as HTMLTextAreaElement).select()}
-              style={{
-                width: '100%', border: `1px solid ${C.border}`, borderRadius: 8,
-                padding: '10px 14px', fontSize: 12, fontFamily: C.mono, color: C.textSub,
-                background: C.bg, resize: 'vertical' as const, cursor: 'text',
-                outline: 'none', lineHeight: 1.6, boxSizing: 'border-box' as const,
-              }}
-            />
+              style={{ ...field, fontFamily: C.mono, fontSize: 12, lineHeight: 1.6, color: C.textSub, background: C.bg, resize: 'vertical' as const, cursor: 'text' }} />
           </>
         )}
       </div>
 
-      {/* Share nudge */}
-      <div style={{ ...card, textAlign: 'center', padding: '24px 28px' }}>
-        <span style={sectionLabel}>Share this overview</span>
-        <p style={{ fontSize: 14, color: C.textSub, margin: '0 0 14px', lineHeight: 1.6 }}>
-          Send this page link directly to {lead.name} — it's always available at this URL.
-        </p>
-        <CopyButton getText={() => typeof window !== 'undefined' ? window.location.href : ''} text='⎘ Copy page link' />
+      {/* Share */}
+      <div style={{ ...card, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16 }}>
+        <div>
+          <span style={sectionLabel}>Share with {lead.name}</span>
+          <p style={{ fontSize: 13, color: C.textSub, margin: 0 }}>Send this permanent link to share their personalised overview.</p>
+        </div>
+        <CopyButton getText={() => typeof window !== 'undefined' ? window.location.href : ''} text='⎘ Copy link' />
       </div>
 
       <p style={{ fontSize: 13, color: C.textMuted, textAlign: 'center', marginTop: 32 }}>

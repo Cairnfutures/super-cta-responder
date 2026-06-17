@@ -30,12 +30,16 @@ export default async function ResultPage({ params }: { params: Promise<{ id: str
           </div>
           <span style={{ fontWeight: 700, fontSize: 15, color: '#111118', letterSpacing: '-0.01em' }}>ThingLink</span>
         </div>
-        <span style={{ fontSize: 13, color: '#9999aa' }}>Prepared for {data.name} · {createdAt}</span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+          <a href="/responses" style={{ fontSize: 13, color: '#6b6b80', textDecoration: 'none', fontWeight: 500 }}>← All responses</a>
+          <a href="/respond" style={{ fontSize: 13, fontWeight: 600, color: '#fff', background: 'linear-gradient(135deg,#FFB347 0%,#FF7B8B 35%,#CC80E0 65%,#5CE8D4 100%)', borderRadius: 20, padding: '5px 14px', textDecoration: 'none' }}>+ New</a>
+        </div>
       </div>
 
       {/* Body */}
       <div style={{ maxWidth: 780, margin: '0 auto', padding: '40px 24px 80px' }}>
         <ResultViewer
+          id={id}
           title={data.title || `ThingLink for ${data.company}`}
           onePagerMd={data.one_pager_md || ''}
           lead={{ name: data.name, company: data.company, role: data.role, interest: data.interest }}
