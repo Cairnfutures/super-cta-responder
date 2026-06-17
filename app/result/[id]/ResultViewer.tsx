@@ -66,6 +66,33 @@ export default function ResultViewer({ id, title: initialTitle, onePagerMd: init
     { id: 'html',     label: 'HTML' },
   ]
 
+  function handleDownloadPDF() {
+    const printWindow = window.open('', '_blank')
+    if (!printWindow) return
+    printWindow.document.write(`<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>${title}</title>
+<style>
+  body { margin: 0; padding: 24px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif; background: #fff; }
+  @media print {
+    body { padding: 0; }
+    .tl-screen-embed { display: none !important; }
+    .tl-print-thumb { display: block !important; }
+  }
+  .tl-screen-embed { display: none; }
+  .tl-print-thumb { display: block; }
+</style>
+</head>
+<body>
+${htmlBody}
+<script>window.onload = function(){ setTimeout(function(){ window.print(); }, 300); }</script>
+</body>
+</html>`)
+    printWindow.document.close()
+  }
+
   async function handleSave() {
     setSaving(true)
     try {
@@ -114,6 +141,10 @@ export default function ResultViewer({ id, title: initialTitle, onePagerMd: init
           <div style={{ display: 'flex', gap: 8 }}>
             {tab === 'html' && <CopyButton getText={() => htmlBody} text='⎘ Copy HTML' />}
             {tab === 'markdown' && <CopyButton getText={() => body} text='⎘ Copy markdown' />}
+            <button onClick={handleDownloadPDF}
+              style={{ fontSize: 12, padding: '5px 14px', border: `1px solid ${C.border}`, borderRadius: 6, color: C.textSub, background: C.bg, cursor: 'pointer', fontFamily: C.sans, fontWeight: 500 }}>
+              ↓ PDF
+            </button>
             <button onClick={handleSave} disabled={saving}
               style={{ fontSize: 12, padding: '5px 14px', border: 'none', borderRadius: 6, color: '#fff', background: saved ? '#27ae60' : C.grad, cursor: saving ? 'not-allowed' : 'pointer', fontFamily: C.sans, fontWeight: 600 }}>
               {saved ? '✓ Saved' : saving ? 'Saving…' : 'Save'}

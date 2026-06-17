@@ -64,6 +64,7 @@ interface Testimonial {
 interface Example {
   name: string
   embed_code: string
+  thumbnail_url?: string
 }
 
 // ─────────────────────────────────────────
@@ -90,6 +91,33 @@ async function fetchTestimonial(interest: string): Promise<Testimonial | null> {
 
   if (rows.length === 0) return null
   return rows[Math.floor(Math.random() * rows.length)]
+}
+
+// ─────────────────────────────────────────
+// Fetch thumbnail from Airtable (for PDF export)
+// Requires AIRTABLE_PAT env var
+// ─────────────────────────────────────────
+async function fetchAirtableThumbnail(interest: string): Promise<string | null> {
+  const pat = process.env.AIRTABLE_PAT
+  if (!pat) return null
+
+  const industries = INTEREST_TO_INDUSTRY[interest] || ['General Enterprise']
+  // Build OR formula: OR(SEARCH("k12",{Industry}), SEARCH("Education",{Industry}))
+  const formula = `OR(${industries.map(i => `SEARCH("${i}",{Industry})`).join(',')})`
+  const url = `https://api.airtable.com/v0/appPHMNg3d6oLE6z6/tbl4RJtvnVQ5OoCsk?` +
+    `filterByFormula=${encodeURIComponent(formula)}&fields[]=Thumb&maxRecords=15`
+
+  try {
+    const res = await fetch(url, { headers: { Authorization: `Bearer ${pat}` } })
+    if (!res.ok) return null
+    const json = await res.json()
+    const records: any[] = (json.records || []).filter((r: any) => r.fields?.Thumb?.[0]?.thumbnails?.large?.url)
+    if (records.length === 0) return null
+    const picked = records[Math.floor(Math.random() * records.length)]
+    return picked.fields.Thumb[0].thumbnails.large.url as string
+  } catch {
+    return null
+  }
 }
 
 // ─────────────────────────────────────────
@@ -180,7 +208,10 @@ function blockCaseStudy(parsed: any, example: Example | null): string {
     ? `<p style="font-size:13px;color:#111118;margin:12px 0 0;padding:10px 14px;background:#f5f5f7;border-radius:8px;font-weight:500;line-height:1.6;">${parsed.case_study_outcomes}</p>`
     : ''
   const embedHTML = example
-    ? `<div style="margin:20px 0;">${example.embed_code}</div>`
+    ? `<div class="tl-screen-embed" style="margin:20px 0;">${example.embed_code}</div>` +
+      (example.thumbnail_url
+        ? `<div class="tl-print-thumb" style="display:none;margin:20px 0;"><img src="${example.thumbnail_url}" style="width:100%;border-radius:8px;object-fit:cover;" alt="ThingLink example screenshot" /><p style="font-size:12px;color:#6b6b80;margin:6px 0 0;text-align:center;">View live at thinglink.com</p></div>`
+        : `<div class="tl-print-thumb" style="display:none;margin:20px 0;padding:20px;background:#f5f5f7;border-radius:8px;text-align:center;"><p style="font-size:13px;color:#6b6b80;margin:0;">View this interactive example at thinglink.com</p></div>`)
     : ''
   return `<div style="background:#ffffff;border:1px solid #e4e4e9;border-radius:12px;padding:24px 28px;margin:0 0 14px;font-family:${FONT};">
   <p style="${LABEL}color:#CC80E0;">Customer Story</p>
@@ -238,10 +269,12 @@ export async function generateResponse(input: LeadInput): Promise<GeneratedRespo
   const { name, company, role, interest, language = 'English', thinglinkContent, source } = input
   const firstName = name.split(' ')[0]
 
-  const [testimonial, example] = await Promise.all([
+  const [testimonial, exampleBase, thumbnailUrl] = await Promise.all([
     fetchTestimonial(interest),
     fetchExample(interest),
+    fetchAirtableThumbnail(interest),
   ])
+  const example = exampleBase ? { ...exampleBase, thumbnail_url: thumbnailUrl ?? undefined } : null
 
   const languageInstruction = language !== 'English'
     ? `\n\nIMPORTANT: Write the entire one-pager in ${language}. All headings, body text, and labels must be in ${language}.`
@@ -355,8 +388,10 @@ Use ROI ranges from the approved list that best match ${interest}.${languageInst
   if (testimonial) blocks.push(blockTestimonial(testimonial))
   blocks.push(blockNextStep(company, role, interest))
 
+  const printStyles = `<style>@media print{.tl-screen-embed{display:none!important;}.tl-print-thumb{display:block!important;}.tl-no-print{display:none!important;}}</style>`
+
   return {
     title,
-    one_pager_md: blocks.join('\n'),
+    one_pager_md: printStyles + '\n' + blocks.join('\n'),
   }
 }
