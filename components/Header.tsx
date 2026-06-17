@@ -6,7 +6,7 @@ const C = {
   text:    '#111118',
   textSub: '#6b6b80',
   border:  '#e4e4e9',
-  sans:    '-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
+  sans:    "'Inter', sans-serif",
 }
 
 interface NavItem {
@@ -72,10 +72,7 @@ export default function Header({ nav = [], right }: HeaderProps) {
             fontWeight: 800,
             letterSpacing: '-0.03em',
             lineHeight: 1,
-            background: C.grad,
-            WebkitBackgroundClip: 'text',
-            WebkitTextFillColor: 'transparent',
-            backgroundClip: 'text',
+            color: '#1a1a2e',
           }}
         >
           ThingLink

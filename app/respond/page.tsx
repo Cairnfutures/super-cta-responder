@@ -13,7 +13,7 @@ const C = {
   textMuted: '#9999aa',
   sans:      "'Inter', sans-serif",
   mono:      'ui-monospace, SFMono-Regular, Menlo, monospace',
-  grad:      '#1a1a2e',
+  grad:      'linear-gradient(135deg,#FFB347 0%,#FF7B8B 35%,#CC80E0 65%,#5CE8D4 100%)',
 }
 
 const LANGUAGE_OPTIONS = [
