@@ -167,8 +167,8 @@ export default function RespondPage() {
                 </div>
 
                 <div>
-                  <label style={{ fontSize: 13, color: C.textSub, display: 'block', marginBottom: 5 }}>Organisation</label>
-                  <input style={field} value={form.company} onChange={e => set('company', e.target.value)} placeholder="Acme Corp" />
+                  <label style={{ fontSize: 13, color: C.textSub, display: 'block', marginBottom: 5 }}>Organisation or domain</label>
+                  <input style={field} value={form.company} onChange={e => set('company', e.target.value)} placeholder="Acme Corp or acme.com" />
                 </div>
 
                 <div>

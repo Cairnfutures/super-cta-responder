@@ -265,9 +265,14 @@ function blockNextStep(company: string, role: string, interest: string): string 
 // ─────────────────────────────────────────
 // Main generation function
 // ─────────────────────────────────────────
+function looksLikeDomain(s: string): boolean {
+  return /^(https?:\/\/)?([a-z0-9-]+\.)+[a-z]{2,}$/i.test(s.trim()) && !s.includes(' ')
+}
+
 export async function generateResponse(input: LeadInput): Promise<GeneratedResponse> {
   const { name, company, role, interest, language = 'English', thinglinkContent, source } = input
   const firstName = name.split(' ')[0]
+  const domainMode = looksLikeDomain(company)
 
   const [testimonial, exampleBase, thumbnailUrl] = await Promise.all([
     fetchTestimonial(interest),
@@ -344,12 +349,16 @@ OUTPUT — raw JSON only, no code block wrapper:
   "roi": "Block 5 text (~55 words)"
 }`
 
+  const domainInstruction = domainMode
+    ? `\n\nIMPORTANT: The company field contains a domain name (${company}). Infer the full organisation name, sector, size, and country from this domain. Use the inferred organisation name (not the raw domain) in all copy — in the title, in block 4 ("How this would work at [Org Name]"), and throughout. State your inference briefly in the title field, e.g. "An Introduction to ThingLink for Acme Corp" not "An Introduction to ThingLink for acme.com".`
+    : ''
+
   const userPrompt = `Write a one-pager for:
 
 Name: ${name}
 Company: ${company}
 Role: ${role}
-Primary interest: ${interest}${contentContext}${sourceContext}
+Primary interest: ${interest}${contentContext}${sourceContext}${domainInstruction}
 
 Pick the single best-matching case study from the approved list for their sector.
 Tie all three bullets in block 4 to ${company}'s specific environment — their sites / wards / classrooms / stores / fleet (whatever fits their world).
