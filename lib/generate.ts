@@ -153,6 +153,13 @@ function cleanQuote(q: string): string {
   return q.replace(/^[“”""]+|[“”""]+$/g, '').replace(/"/g, '&quot;')
 }
 
+function blockHeader(title: string, name: string, role: string, company: string): string {
+  return `<div style="background:linear-gradient(135deg,#FFB347 0%,#FF7B8B 35%,#CC80E0 65%,#5CE8D4 100%);border-radius:12px;padding:36px 36px 32px;margin:0 0 14px;font-family:${FONT};">
+  <p style="font-size:12px;font-weight:700;color:rgba(255,255,255,0.75);letter-spacing:0.1em;text-transform:uppercase;margin:0 0 10px;">Prepared for ${name}, ${role}</p>
+  <h1 style="font-size:26px;font-weight:800;color:#ffffff;margin:0;line-height:1.25;letter-spacing:-0.02em;">${title}</h1>
+</div>`
+}
+
 function blockHook(text: string): string {
   return `<div style="background:#fff8f9;border-left:4px solid #FF7B8B;border-radius:0 12px 12px 0;padding:24px 28px;margin:0 0 14px;font-family:${FONT};">
   <p style="${BASE_TEXT}">${text}</p>
@@ -335,7 +342,9 @@ Use ROI ranges from the approved list that best match ${interest}.${languageInst
   }
 
   // Assemble the 7 styled blocks
+  const title = parsed.title || `An Introduction to ThingLink for ${company}`
   const blocks: string[] = [
+    blockHeader(title, name, role, company),
     blockHook(parsed.hook || ''),
     blockReframe(parsed.reframe || ''),
     blockCaseStudy(parsed, example),
@@ -347,7 +356,7 @@ Use ROI ranges from the approved list that best match ${interest}.${languageInst
   blocks.push(blockNextStep(company, role, interest))
 
   return {
-    title: parsed.title || `An Introduction to ThingLink for ${company}`,
+    title,
     one_pager_md: blocks.join('\n'),
   }
 }
