@@ -11,9 +11,9 @@ const C = {
   text:      '#111118',
   textSub:   '#6b6b80',
   textMuted: '#9999aa',
-  sans:      '-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
+  sans:      "'Inter', sans-serif",
   mono:      'ui-monospace, SFMono-Regular, Menlo, monospace',
-  grad:      'linear-gradient(135deg,#FFB347 0%,#FF7B8B 35%,#CC80E0 65%,#5CE8D4 100%)',
+  grad:      '#1a1a2e',
 }
 
 const LANGUAGE_OPTIONS = [
