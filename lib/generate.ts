@@ -200,7 +200,8 @@ function blockReframe(text: string): string {
 </div>`
 }
 
-function blockCaseStudy(parsed: any, example: Example | null): string {
+function blockCaseStudy(parsed: any, example: Example | null, labels: any): string {
+  const customerStoryLabel = labels?.customer_story || 'Customer Story'
   const caseStudyLink = parsed.case_study_url && String(parsed.case_study_url).startsWith('http')
     ? `<a href="${parsed.case_study_url}" target="_blank" rel="noopener noreferrer" style="display:inline-block;margin-top:14px;font-size:13px;font-weight:600;color:#FF7B8B;text-decoration:none;">Read the full case study →</a>`
     : ''
@@ -214,7 +215,7 @@ function blockCaseStudy(parsed: any, example: Example | null): string {
         : `<div class="tl-print-thumb" style="display:none;margin:20px 0;padding:20px;background:#f5f5f7;border-radius:8px;text-align:center;"><p style="font-size:13px;color:#6b6b80;margin:0;">View this interactive example at thinglink.com</p></div>`)
     : ''
   return `<div style="background:#ffffff;border:1px solid #e4e4e9;border-radius:12px;padding:24px 28px;margin:0 0 14px;font-family:${FONT};">
-  <p style="${LABEL}color:#CC80E0;">Customer Story</p>
+  <p style="${LABEL}color:#CC80E0;">${customerStoryLabel}</p>
   <p style="font-size:14px;font-weight:600;color:#111118;margin:0 0 14px;">${parsed.case_study_customer || ''}</p>
   <p style="font-size:15px;color:#111118;line-height:1.8;margin:0 0 8px;font-style:italic;">"${cleanQuote(parsed.case_study_quote || '')}"</p>
   <p style="font-size:13px;color:#6b6b80;margin:0;font-weight:600;">— ${parsed.case_study_attribution || 'ThingLink customer'}</p>
@@ -224,21 +225,23 @@ function blockCaseStudy(parsed: any, example: Example | null): string {
 </div>`
 }
 
-function blockHowItWorks(bullets: string[], company: string): string {
+function blockHowItWorks(bullets: string[], company: string, labels: any): string {
+  const heading = labels?.how_it_works_heading || 'How This Would Work at'
   const items = (bullets || []).slice(0, 3).map(b =>
     `<li style="font-size:15px;color:#111118;line-height:1.7;margin:0 0 12px;padding-left:4px;">${b}</li>`
   ).join('')
   return `<div style="background:#f5f5f7;border-radius:12px;padding:24px 28px;margin:0 0 14px;font-family:${FONT};">
-  <p style="${LABEL}color:#5CE8D4;">How This Would Work at ${company}</p>
+  <p style="${LABEL}color:#5CE8D4;">${heading} ${company}</p>
   <ul style="margin:0;padding:0 0 0 20px;list-style:disc;">
     ${items}
   </ul>
 </div>`
 }
 
-function blockROI(text: string): string {
+function blockROI(text: string, labels: any): string {
+  const heading = labels?.likely_outcomes || 'Likely Outcomes'
   return `<div style="background:#f0fff8;border-left:4px solid #5CE8D4;border-radius:0 12px 12px 0;padding:24px 28px;margin:0 0 14px;font-family:${FONT};">
-  <p style="${LABEL}color:#5CE8D4;">Likely Outcomes</p>
+  <p style="${LABEL}color:#5CE8D4;">${heading}</p>
   <p style="${BASE_TEXT}">${text}</p>
 </div>`
 }
@@ -253,13 +256,16 @@ function blockTestimonial(t: Testimonial): string {
 </div>`
 }
 
-function blockNextStep(company: string, role: string, interest: string): string {
+function blockNextStep(company: string, role: string, interest: string, labels: any): string {
+  const heading = labels?.cta_heading || 'Would you like to see this in action for your organisation?'
+  const body = labels?.cta_body || "You are welcome to request a demo and we'll make it relevant to your ideas. Share a document, image, training resource, or piece of content you already use, and we'll tailor the session around it. We'll transform your material into a working ThingLink scenario and walk through it with you live, so you can see your own content brought to life rather than a generic demo."
+  const buttonText = labels?.request_demo || 'Request a demo →'
   return `<div style="background:#0a2540;border-radius:12px;padding:32px 36px;margin:0 0 14px;font-family:${FONT};">
-  <p style="font-size:18px;font-weight:700;color:#ffffff;margin:0 0 16px;line-height:1.4;">Would you like to see this in action for your organisation?</p>
-  <p style="font-size:15px;color:rgba(255,255,255,0.85);margin:0 0 24px;line-height:1.8;">You are welcome to request a demo and we'll make it relevant to your ideas. Share a document, image, training resource, or piece of content you already use, and we'll tailor the session around it. We'll transform your material into a working ThingLink scenario and walk through it with you live, so you can see your own content brought to life rather than a generic demo.</p>
+  <p style="font-size:18px;font-weight:700;color:#ffffff;margin:0 0 16px;line-height:1.4;">${heading}</p>
+  <p style="font-size:15px;color:rgba(255,255,255,0.85);margin:0 0 24px;line-height:1.8;">${body}</p>
   <a href="https://www.thinglink.com/demo" target="_blank" rel="noopener noreferrer"
     style="display:inline-block;padding:14px 32px;font-size:15px;font-weight:700;color:#ffffff;background:linear-gradient(135deg,#FFB347 0%,#FF7B8B 35%,#CC80E0 65%,#5CE8D4 100%);border-radius:50px;text-decoration:none;letter-spacing:-0.01em;font-family:${FONT};">
-    Request a demo →
+    ${buttonText}
   </a>
 </div>`
 }
@@ -348,8 +354,18 @@ OUTPUT — raw JSON only, no code block wrapper:
   "case_study_outcomes": "Outcome 1 · Outcome 2 (ranges or verified figures only — null if none available)",
   "case_study_url": "URL from approved list or null",
   "how_it_works": ["Bullet 1 (~30 words)", "Bullet 2 (~30 words)", "Bullet 3 (~30 words)"],
-  "roi": "Block 5 text (~55 words)"
-}`
+  "roi": "Block 5 text (~55 words)",
+  "labels": {
+    "customer_story": "Customer Story",
+    "how_it_works_heading": "How This Would Work at",
+    "likely_outcomes": "Likely Outcomes",
+    "cta_heading": "Would you like to see this in action for your organisation?",
+    "cta_body": "You are welcome to request a demo and we'll make it relevant to your ideas. Share a document, image, training resource, or piece of content you already use, and we'll tailor the session around it. We'll transform your material into a working ThingLink scenario and walk through it with you live, so you can see your own content brought to life rather than a generic demo.",
+    "request_demo": "Request a demo →"
+  }
+}
+
+If writing in a language other than English, translate ALL label values above into that language. Keep the JSON keys in English.`
 
   const domainInstruction = domainMode
     ? `\n\nIMPORTANT: The company field contains a domain name (${company}). Infer the full organisation name, sector, size, and country from this domain. Use the inferred organisation name (not the raw domain) in all copy — in the title, in block 4 ("How this would work at [Org Name]"), and throughout. State your inference briefly in the title field, e.g. "An Introduction to ThingLink for Acme Corp" not "An Introduction to ThingLink for acme.com".`
@@ -387,17 +403,18 @@ Use ROI ranges from the approved list that best match ${interest}.${languageInst
 
   // Assemble the 7 styled blocks
   const title = parsed.title || `An Introduction to ThingLink for ${company}`
+  const labels = parsed.labels || {}
   const blocks: string[] = [
     blockHeader(title, name, role, company),
     blockHook(parsed.hook || ''),
     blockReframe(parsed.reframe || ''),
-    blockCaseStudy(parsed, example),
-    blockHowItWorks(parsed.how_it_works || [], company),
-    blockROI(parsed.roi || ''),
+    blockCaseStudy(parsed, example, labels),
+    blockHowItWorks(parsed.how_it_works || [], company, labels),
+    blockROI(parsed.roi || '', labels),
   ]
 
   if (testimonial) blocks.push(blockTestimonial(testimonial))
-  blocks.push(blockNextStep(company, role, interest))
+  blocks.push(blockNextStep(company, role, interest, labels))
 
   const printStyles = `<style>@media print{.tl-screen-embed{display:none!important;}.tl-print-thumb{display:block!important;}.tl-no-print{display:none!important;}}</style>`
 
