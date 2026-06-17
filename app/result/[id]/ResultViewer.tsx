@@ -10,7 +10,7 @@ const C = {
   text:      '#111118',
   textSub:   '#6b6b80',
   textMuted: '#9999aa',
-  sans:      '-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
+  sans:      "'Inter', sans-serif",
   mono:      'ui-monospace, SFMono-Regular, Menlo, monospace',
   grad:      'linear-gradient(135deg,#FFB347 0%,#FF7B8B 35%,#CC80E0 65%,#5CE8D4 100%)',
 }
@@ -74,8 +74,11 @@ export default function ResultViewer({ id, title: initialTitle, onePagerMd: init
 <head>
 <meta charset="utf-8">
 <title>${title}</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
 <style>
-  body { margin: 0; padding: 24px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif; background: #fff; }
+  body { margin: 0; padding: 24px; font-family: 'Inter', sans-serif; background: #fff; }
   @media print {
     body { padding: 0; }
     .tl-screen-embed { display: none !important; }
