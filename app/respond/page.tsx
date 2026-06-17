@@ -16,6 +16,12 @@ const C = {
   grad:      'linear-gradient(135deg,#FFB347 0%,#FF7B8B 35%,#CC80E0 65%,#5CE8D4 100%)',
 }
 
+const LANGUAGE_OPTIONS = [
+  'English', 'French', 'German', 'Spanish', 'Dutch', 'Finnish',
+  'Swedish', 'Norwegian', 'Danish', 'Portuguese', 'Italian',
+  'Arabic', 'Japanese', 'Chinese (Simplified)', 'Korean',
+]
+
 const INTEREST_OPTIONS = [
   'K-12 Education',
   'Higher Education',
@@ -68,7 +74,7 @@ const LENGTH_OPTIONS: { id: Length; label: string; desc: string }[] = [
 export default function RespondPage() {
   const [form, setForm] = useState({
     name: '', company: '', role: '', interest: '',
-    thinglinkContent: '', source: '',
+    thinglinkContent: '', source: '', language: 'English',
   })
   const [length, setLength] = useState<Length>('medium')
   const [loading, setLoading] = useState(false)
@@ -205,6 +211,13 @@ export default function RespondPage() {
             <div style={card}>
               <span style={sectionLabel}>Optional context</span>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                <div>
+                  <label style={{ fontSize: 13, color: C.textSub, display: 'block', marginBottom: 5 }}>Output language</label>
+                  <select style={{ ...field, appearance: 'none' as any, cursor: 'pointer' }}
+                    value={form.language} onChange={e => set('language', e.target.value)}>
+                    {LANGUAGE_OPTIONS.map(l => <option key={l} value={l}>{l}</option>)}
+                  </select>
+                </div>
                 <div>
                   <label style={{ fontSize: 13, color: C.textSub, display: 'block', marginBottom: 5 }}>ThingLink content they viewed</label>
                   <input style={field} value={form.thinglinkContent} onChange={e => set('thinglinkContent', e.target.value)} placeholder="e.g. Hospital ward safety tour" />

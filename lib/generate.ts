@@ -18,6 +18,7 @@ export interface LeadInput {
   role: string
   interest: string
   length?: OnePagerLength
+  language?: string
   thinglinkContent?: string
   source?: string
 }
@@ -187,7 +188,7 @@ const CTA_BLOCK = `
 // Main generation function
 // ─────────────────────────────────────────
 export async function generateResponse(input: LeadInput): Promise<GeneratedResponse> {
-  const { name, company, role, interest, length = 'medium', thinglinkContent, source } = input
+  const { name, company, role, interest, length = 'medium', language = 'English', thinglinkContent, source } = input
   const wordCount = LENGTH_WORDS[length]
   const firstName = name.split(' ')[0]
 
@@ -276,6 +277,7 @@ OUTPUT FORMAT: Respond with a single valid JSON object with these exact keys:
 
   const contentContext = thinglinkContent ? `\nThingLink content they viewed: ${thinglinkContent}` : ''
   const sourceContext = source ? `\nCampaign / source: ${source}` : ''
+  const languageInstruction = language !== 'English' ? `\n\nIMPORTANT: Write the entire one-pager in ${language}. All headings, body text, and calls to action must be in ${language}.` : ''
 
   // Segment-specific feature suggestions to steer Claude
   const segmentFeatureHints: Record<string, string> = {
@@ -310,7 +312,7 @@ INSTRUCTIONS:
 2. For "How ThingLink Can Help" — use the feature focus above. Describe 2–3 features with concrete outcomes for their role, not abstract capabilities. E.g. not "Scenario Builder creates branching scenarios" but "With Scenario Builder, your team can practice responding to difficult customer situations in a safe environment — before they face it in real life."
 3. For "What Results Look Like" — weave in the provided customer quotes naturally. Add 1–2 proof points (UNESCO Prize 2018, 96% positive feedback from Keele University research, WCAG 2.2 AA) where they fit. Only name a case study from the approved list if the sector matches.
 4. For "Getting Started" — name the specific plan tier(s) suited to ${company}'s context. Close with a warm, specific invitation: e.g. "I'd love to show you a 30-minute live demo — we can build an example in your context together."
-5. Write ${wordCount} total. Every sentence should earn its place.`
+5. Write ${wordCount} total. Every sentence should earn its place.${languageInstruction}`
 
   const response = await anthropic.messages.create({
     model: GENERATION_MODEL,
