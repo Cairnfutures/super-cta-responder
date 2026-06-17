@@ -59,7 +59,7 @@ function CopyButton({ getText, text = '⎘ Copy' }: { getText: () => string; tex
 
 export default function RespondPage() {
   const [form, setForm] = useState({
-    name: '', email: '', company: '', role: '', interest: '',
+    name: '', company: '', role: '', interest: '',
     thinglinkContent: '', source: '',
   })
   const [loading, setLoading] = useState(false)
@@ -72,8 +72,8 @@ export default function RespondPage() {
   const htmlBody = useMemo(() => result ? (marked.parse(result.onePagerMd) as string) : '', [result])
 
   async function handleGenerate() {
-    if (!form.name || !form.email || !form.company || !form.role || !form.interest) {
-      setError('Please fill in name, email, company, role and interest.')
+    if (!form.name || !form.company || !form.role || !form.interest) {
+      setError('Please fill in all fields.')
       return
     }
     setError('')
@@ -134,13 +134,8 @@ export default function RespondPage() {
               <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
 
                 <div>
-                  <label style={{ fontSize: 13, color: C.textSub, display: 'block', marginBottom: 5 }}>Full name</label>
-                  <input style={field} value={form.name} onChange={e => set('name', e.target.value)} placeholder="Jane Smith" />
-                </div>
-
-                <div>
-                  <label style={{ fontSize: 13, color: C.textSub, display: 'block', marginBottom: 5 }}>Email</label>
-                  <input style={field} type="email" value={form.email} onChange={e => set('email', e.target.value)} placeholder="jane@company.com" />
+                  <label style={{ fontSize: 13, color: C.textSub, display: 'block', marginBottom: 5 }}>Name / reference</label>
+                  <input style={field} value={form.name} onChange={e => set('name', e.target.value)} placeholder="e.g. Jane or Jane - Acme" />
                 </div>
 
                 <div>

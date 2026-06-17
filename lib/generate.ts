@@ -6,7 +6,6 @@ import { supabaseAdmin } from '@/lib/supabase'
 // ─────────────────────────────────────────
 export interface LeadInput {
   name: string
-  email: string
   company: string
   role: string
   interest: string
@@ -87,7 +86,7 @@ const CTA_BLOCK = `
 // Main generation function
 // ─────────────────────────────────────────
 export async function generateResponse(input: LeadInput): Promise<GeneratedResponse> {
-  const { name, email, company, role, interest, thinglinkContent, source } = input
+  const { name, company, role, interest, thinglinkContent, source } = input
 
   const firstName = name.split(' ')[0]
 
@@ -134,7 +133,6 @@ OUTPUT FORMAT: Respond with a single valid JSON object with these exact keys:
   const userPrompt = `Write a personalised ThingLink one-pager for this prospect:
 
 Name: ${name}
-Email: ${email}
 Company: ${company}
 Role: ${role}
 Primary interest: ${interest}${contentContext}${sourceContext}
