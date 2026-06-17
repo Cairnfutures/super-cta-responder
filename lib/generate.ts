@@ -65,11 +65,13 @@ interface Example {
 // ─────────────────────────────────────────
 async function fetchTestimonials(interest: string): Promise<Testimonial[]> {
   const sectors = INTEREST_TO_SECTORS[interest] || ['corporate']
-  const { data } = await supabaseAdmin
+  const { data, error } = await supabaseAdmin
     .from('testimonials')
     .select('quote, customer_details, case_study_url, sector')
     .in('sector', sectors)
     .limit(20)
+
+  console.log('[fetchTestimonials] sectors:', sectors, '| count:', data?.length ?? 0, '| error:', error)
 
   if (!data || data.length === 0) return []
 
@@ -117,10 +119,12 @@ async function fetchExample(interest: string): Promise<Example | null> {
   }
 
   // Fallback — any example
-  const { data } = await supabaseAdmin
+  const { data, error } = await supabaseAdmin
     .from('examples')
     .select('*')
     .limit(20)
+
+  console.log('[fetchExample] fallback:', { count: data?.length ?? 0, error, cols: data?.[0] ? Object.keys(data[0]) : [] })
 
   const rows = (data || []).map(normaliseExample).filter(Boolean) as Example[]
   if (rows.length === 0) return null
