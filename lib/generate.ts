@@ -51,6 +51,7 @@ const INTEREST_TO_INDUSTRY: Record<string, string[]> = {
 interface Testimonial {
   quote: string
   customer_details: string | null
+  case_study_url: string | null
   sector: string
 }
 
@@ -66,7 +67,7 @@ async function fetchTestimonials(interest: string): Promise<Testimonial[]> {
   const sectors = INTEREST_TO_SECTORS[interest] || ['corporate']
   const { data } = await supabaseAdmin
     .from('testimonials')
-    .select('quote, customer_details, sector')
+    .select('quote, customer_details, case_study_url, sector')
     .in('sector', sectors)
     .limit(20)
 
@@ -92,20 +93,23 @@ async function fetchTestimonials(interest: string): Promise<Testimonial[]> {
 async function fetchExample(interest: string): Promise<Example | null> {
   const keywords = INTEREST_TO_INDUSTRY[interest] || ['training']
 
-  for (const keyword of keywords) {
-    const { data } = await supabaseAdmin
-      .from('examples')
-      .select('name, embed_code')
-      .ilike('industry', `%${keyword}%`)
-      .not('embed_code', 'is', null)
-      .limit(10)
+  // Try industry column first, then project_type
+  for (const column of ['industry', 'project_type']) {
+    for (const keyword of keywords) {
+      const { data } = await supabaseAdmin
+        .from('examples')
+        .select('name, embed_code')
+        .ilike(column, `%${keyword}%`)
+        .not('embed_code', 'is', null)
+        .limit(10)
 
-    if (data && data.length > 0) {
-      return data[Math.floor(Math.random() * data.length)]
+      if (data && data.length > 0) {
+        return data[Math.floor(Math.random() * data.length)]
+      }
     }
   }
 
-  // Fallback — any example with an embed
+  // Fallback — any example with an embed code
   const { data } = await supabaseAdmin
     .from('examples')
     .select('name, embed_code')
@@ -120,10 +124,13 @@ async function fetchExample(interest: string): Promise<Example | null> {
 // Styled testimonial pull-quote block
 // ─────────────────────────────────────────
 function testimonialBlock(t: Testimonial): string {
+  const caseStudyLink = t.case_study_url && t.case_study_url.startsWith('http')
+    ? `\n  <a href="${t.case_study_url}" target="_blank" rel="noopener noreferrer" style="display:inline-block;margin-top:12px;font-size:13px;font-weight:600;color:#FF7B8B;text-decoration:none;">Read the case study →</a>`
+    : ''
   return `
 <div style="border-left:4px solid #FF7B8B;padding:16px 20px;margin:28px 0;background:#fff8f9;border-radius:0 8px 8px 0;">
   <p style="font-size:16px;color:#111118;line-height:1.75;margin:0 0 10px;font-style:italic;">"${t.quote.replace(/^[""]|[""]$/g, '').replace(/"/g, '&quot;')}"</p>
-  <p style="font-size:13px;color:#6b6b80;margin:0;font-weight:600;">— ${t.customer_details || 'ThingLink customer'}</p>
+  <p style="font-size:13px;color:#6b6b80;margin:0;font-weight:600;">— ${t.customer_details || 'ThingLink customer'}</p>${caseStudyLink}
 </div>`
 }
 
