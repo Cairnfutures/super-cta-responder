@@ -133,7 +133,7 @@ export default function ResultViewer({ id, title: initialTitle, onePagerMd: init
 
         {tab === 'html' && (
           <>
-            <p style={{ fontSize: 13, color: C.textMuted, margin: '0 0 12px' }}>Click to select all, then paste into HubSpot or your CMS.</p>
+            <p style={{ fontSize: 13, color: C.textMuted, margin: '0 0 12px' }}>Click to select all, then paste into HubSpot or your email tool. To save as PDF, use the Preview tab + browser Print → Save as PDF.</p>
             <textarea readOnly value={htmlBody} rows={30}
               onClick={e => (e.target as HTMLTextAreaElement).select()}
               style={{ ...field, fontFamily: C.mono, fontSize: 12, lineHeight: 1.6, color: C.textSub, background: C.bg, resize: 'vertical' as const, cursor: 'text' }} />
@@ -144,8 +144,8 @@ export default function ResultViewer({ id, title: initialTitle, onePagerMd: init
       {/* Share */}
       <div style={{ ...card, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16 }}>
         <div>
-          <span style={sectionLabel}>Share with {lead.name}</span>
-          <p style={{ fontSize: 13, color: C.textSub, margin: 0 }}>Send this permanent link to share their personalised overview.</p>
+          <span style={sectionLabel}>Link to Share Draft</span>
+          <p style={{ fontSize: 13, color: C.textSub, margin: 0 }}>Share with a colleague or reseller — they can edit, save, and export the HTML.</p>
         </div>
         <CopyButton getText={() => typeof window !== 'undefined' ? window.location.href : ''} text='⎘ Copy link' />
       </div>

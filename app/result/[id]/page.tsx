@@ -1,6 +1,7 @@
 import { notFound } from 'next/navigation'
 import { supabaseAdmin } from '@/lib/supabase'
 import ResultViewer from './ResultViewer'
+import Header from '@/components/Header'
 
 export const dynamic = 'force-dynamic'
 
@@ -22,19 +23,12 @@ export default async function ResultPage({ params }: { params: Promise<{ id: str
   return (
     <div style={{ minHeight: '100vh', background: '#f5f5f7', fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif' }}>
 
-      {/* Top bar */}
-      <div style={{ borderBottom: '3px solid transparent', borderImage: 'linear-gradient(135deg,#FFB347 0%,#FF7B8B 35%,#CC80E0 65%,#5CE8D4 100%) 1', background: '#ffffff', padding: '0 32px', height: 56, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          <div style={{ width: 28, height: 28, borderRadius: 7, background: 'linear-gradient(135deg,#FFB347 0%,#FF7B8B 35%,#CC80E0 65%,#5CE8D4 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <span style={{ color: '#fff', fontSize: 15, fontWeight: 700 }}>T</span>
-          </div>
-          <span style={{ fontWeight: 700, fontSize: 15, color: '#111118', letterSpacing: '-0.01em' }}>ThingLink</span>
-        </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-          <a href="/responses" style={{ fontSize: 13, color: '#6b6b80', textDecoration: 'none', fontWeight: 500 }}>← All responses</a>
-          <a href="/respond" style={{ fontSize: 13, fontWeight: 600, color: '#fff', background: 'linear-gradient(135deg,#FFB347 0%,#FF7B8B 35%,#CC80E0 65%,#5CE8D4 100%)', borderRadius: 20, padding: '5px 14px', textDecoration: 'none' }}>+ New</a>
-        </div>
-      </div>
+      <Header
+        nav={[
+          { label: '← All responses', href: '/responses' },
+          { label: '+ New', href: '/respond', primary: true },
+        ]}
+      />
 
       {/* Body */}
       <div style={{ maxWidth: 780, margin: '0 auto', padding: '40px 24px 80px' }}>
