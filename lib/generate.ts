@@ -6,12 +6,6 @@ import { supabaseAdmin } from '@/lib/supabase'
 // ─────────────────────────────────────────
 export type OnePagerLength = 'short' | 'medium' | 'long'
 
-const LENGTH_WORDS: Record<OnePagerLength, string> = {
-  short:  '300–400 words',
-  medium: '500–700 words',
-  long:   '800–1000 words',
-}
-
 export interface LeadInput {
   name: string
   company: string
@@ -29,22 +23,21 @@ export interface GeneratedResponse {
 }
 
 // ─────────────────────────────────────────
-// Map lead interest → testimonial sectors
+// Interest → sector/industry mappings
 // ─────────────────────────────────────────
 const INTEREST_TO_SECTORS: Record<string, string[]> = {
   'K-12 Education':                      ['k12'],
   'Higher Education':                     ['higher_edu'],
-  'Corporate Learning & Development':     ['corporate', 'manufacturing', 'utilities'],
-  'Healthcare Training':                  ['higher_edu', 'vocational', 'utilities'],
+  'Corporate Learning & Development':     ['corporate', 'manufacturing'],
+  'Healthcare Training':                  ['higher_edu', 'vocational'],
   'Sales Enablement':                     ['corporate', 'manufacturing'],
-  'Onboarding & HR':                      ['manufacturing', 'utilities', 'corporate'],
+  'Onboarding & HR':                      ['manufacturing', 'corporate'],
   'Customer Education':                   ['manufacturing', 'corporate'],
   'Tourism & Heritage':                   ['museum', 'ngo'],
   'Government & Public Sector':           ['utilities', 'ngo'],
   'Other':                                ['corporate', 'higher_edu'],
 }
 
-// Map lead interest → example industry keywords (matched to actual DB values)
 const INTEREST_TO_INDUSTRY: Record<string, string[]> = {
   'K-12 Education':                      ['k12', 'Education'],
   'Higher Education':                     ['Higher Ed', 'Education', 'Vocational'],
@@ -58,6 +51,9 @@ const INTEREST_TO_INDUSTRY: Record<string, string[]> = {
   'Other':                                ['General Enterprise', 'Education'],
 }
 
+// ─────────────────────────────────────────
+// Interfaces
+// ─────────────────────────────────────────
 interface Testimonial {
   quote: string
   customer_details: string | null
@@ -71,47 +67,33 @@ interface Example {
 }
 
 // ─────────────────────────────────────────
-// Fetch relevant testimonials by sector
+// Fetch one relevant testimonial (Block 6)
 // ─────────────────────────────────────────
-async function fetchTestimonials(interest: string): Promise<Testimonial[]> {
+async function fetchTestimonial(interest: string): Promise<Testimonial | null> {
   const sectors = INTEREST_TO_SECTORS[interest] || ['corporate']
   const { data, error } = await supabaseAdmin
     .from('testimonials')
     .select('quote, customer_details, case_study_url, sector')
     .in('sector', sectors)
-    .limit(20)
+    .limit(10)
 
-  console.log('[fetchTestimonials] sectors:', sectors, '| count:', data?.length ?? 0, '| error:', error)
+  console.log('[fetchTestimonial] sectors:', sectors, '| count:', data?.length ?? 0, '| error:', error)
 
-  // Fallback: if sector filter returns nothing, fetch any testimonials
   let rows = data || []
   if (rows.length === 0) {
-    const { data: fallbackData, error: fallbackError } = await supabaseAdmin
+    const { data: fallback } = await supabaseAdmin
       .from('testimonials')
       .select('quote, customer_details, case_study_url, sector')
       .limit(20)
-    console.log('[fetchTestimonials] fallback count:', fallbackData?.length ?? 0, '| error:', fallbackError)
-    rows = fallbackData || []
+    rows = fallback || []
   }
 
-  if (rows.length === 0) return []
-
-  const shuffled = [...rows].sort(() => Math.random() - 0.5)
-  const seen = new Set<string>()
-  const selected: Testimonial[] = []
-  for (const t of shuffled) {
-    if (!seen.has(t.sector)) { seen.add(t.sector); selected.push(t) }
-    if (selected.length >= 3) break
-  }
-  for (const t of shuffled) {
-    if (selected.length >= 3) break
-    if (!selected.includes(t)) selected.push(t)
-  }
-  return selected
+  if (rows.length === 0) return null
+  return rows[Math.floor(Math.random() * rows.length)]
 }
 
 // ─────────────────────────────────────────
-// Normalise row — column may be embed_code or embed-code
+// Fetch relevant ThingLink example embed
 // ─────────────────────────────────────────
 function normaliseExample(row: any): Example | null {
   const embed = row['embed_code'] ?? row['embed-code'] ?? null
@@ -119,13 +101,9 @@ function normaliseExample(row: any): Example | null {
   return { name: row.name ?? '', embed_code: embed }
 }
 
-// ─────────────────────────────────────────
-// Fetch relevant ThingLink example embed
-// ─────────────────────────────────────────
 async function fetchExample(interest: string): Promise<Example | null> {
   const keywords = INTEREST_TO_INDUSTRY[interest] || ['training']
 
-  // Try industry column first, then project_type
   for (const column of ['industry', 'project_type']) {
     for (const keyword of keywords) {
       const { data } = await supabaseAdmin
@@ -133,204 +111,213 @@ async function fetchExample(interest: string): Promise<Example | null> {
         .select('*')
         .ilike(column, `%${keyword}%`)
         .limit(10)
-
       const rows = (data || []).map(normaliseExample).filter(Boolean) as Example[]
       if (rows.length > 0) return rows[Math.floor(Math.random() * rows.length)]
     }
   }
 
-  // Fallback — any example
-  const { data, error } = await supabaseAdmin
-    .from('examples')
-    .select('*')
-    .limit(20)
-
+  const { data, error } = await supabaseAdmin.from('examples').select('*').limit(20)
   console.log('[fetchExample] fallback:', { count: data?.length ?? 0, error, cols: data?.[0] ? Object.keys(data[0]) : [] })
-
   const rows = (data || []).map(normaliseExample).filter(Boolean) as Example[]
   if (rows.length === 0) return null
   return rows[Math.floor(Math.random() * rows.length)]
 }
 
 // ─────────────────────────────────────────
-// Styled testimonial pull-quote block
+// Block 7 — material type based on role
 // ─────────────────────────────────────────
-function testimonialBlock(t: Testimonial): string {
-  const caseStudyLink = t.case_study_url && t.case_study_url.startsWith('http')
+function getBlock7Material(role: string, interest: string): string {
+  const r = role.toLowerCase()
+  const i = interest.toLowerCase()
+  if (r.includes('safety')) return 'site photo, toolbox-talk SOP, or near-miss debrief'
+  if (r.includes('l&d') || r.includes('learning & development')) return 'induction document, training video, or course outline'
+  if (r.includes('operations') || r.includes(' ops')) return 'SOP or shift handover doc'
+  if (r.includes(' hr') || r.includes('people') || r.includes('onboarding')) return 'new-hire checklist or orientation material'
+  if (r.includes('it ') || r.includes('technology') || r.includes('digital')) return 'integration spec or security requirements doc'
+  if (i.includes('k-12') || r.includes('teacher') || r.includes('educator') || r.includes('headteacher')) return 'lesson plan, curriculum doc, or campus photo'
+  if (i.includes('higher') || r.includes('professor') || r.includes('lecturer') || r.includes('dean')) return 'lesson plan, curriculum doc, or campus photo'
+  if (i.includes('vocational') || i.includes('tvet')) return 'competence framework or training programme outline'
+  if (i.includes('government') || i.includes('public sector')) return 'procedure, facility photo, or training brief'
+  if (i.includes('tourism') || i.includes('museum') || i.includes('heritage')) return 'exhibit image, visitor guide, or venue photo'
+  return 'document, photo, or training material'
+}
+
+// ─────────────────────────────────────────
+// Styled HTML block builders
+// ─────────────────────────────────────────
+const FONT = `-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif`
+const BASE_TEXT = `font-size:15px;color:#111118;line-height:1.8;margin:0;`
+const LABEL = `font-size:11px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;margin:0 0 12px;`
+
+function cleanQuote(q: string): string {
+  return q.replace(/^[“”""]+|[“”""]+$/g, '').replace(/"/g, '&quot;')
+}
+
+function blockHook(text: string): string {
+  return `<div style="background:#fff8f9;border-left:4px solid #FF7B8B;border-radius:0 12px 12px 0;padding:24px 28px;margin:0 0 14px;font-family:${FONT};">
+  <p style="${BASE_TEXT}">${text}</p>
+</div>`
+}
+
+function blockReframe(text: string): string {
+  return `<div style="background:#fffbf0;border-left:4px solid #FFB347;border-radius:0 12px 12px 0;padding:24px 28px;margin:0 0 14px;font-family:${FONT};">
+  <p style="${BASE_TEXT}">${text}</p>
+</div>`
+}
+
+function blockCaseStudy(parsed: any, example: Example | null): string {
+  const caseStudyLink = parsed.case_study_url && String(parsed.case_study_url).startsWith('http')
+    ? `<a href="${parsed.case_study_url}" target="_blank" rel="noopener noreferrer" style="display:inline-block;margin-top:14px;font-size:13px;font-weight:600;color:#FF7B8B;text-decoration:none;">Read the full case study →</a>`
+    : ''
+  const outcomes = parsed.case_study_outcomes && parsed.case_study_outcomes !== 'null'
+    ? `<p style="font-size:13px;color:#111118;margin:12px 0 0;padding:10px 14px;background:#f5f5f7;border-radius:8px;font-weight:500;line-height:1.6;">${parsed.case_study_outcomes}</p>`
+    : ''
+  const embedHTML = example
+    ? `<div style="margin:20px 0;">${example.embed_code}</div>`
+    : ''
+  return `<div style="background:#ffffff;border:1px solid #e4e4e9;border-radius:12px;padding:24px 28px;margin:0 0 14px;font-family:${FONT};">
+  <p style="${LABEL}color:#CC80E0;">Customer Story</p>
+  <p style="font-size:14px;font-weight:600;color:#111118;margin:0 0 14px;">${parsed.case_study_customer || ''}</p>
+  <p style="font-size:15px;color:#111118;line-height:1.8;margin:0 0 8px;font-style:italic;">"${cleanQuote(parsed.case_study_quote || '')}"</p>
+  <p style="font-size:13px;color:#6b6b80;margin:0;font-weight:600;">— ${parsed.case_study_attribution || 'ThingLink customer'}</p>
+  ${outcomes}
+  ${caseStudyLink}
+  ${embedHTML}
+</div>`
+}
+
+function blockHowItWorks(bullets: string[], company: string): string {
+  const items = (bullets || []).slice(0, 3).map(b =>
+    `<li style="font-size:15px;color:#111118;line-height:1.7;margin:0 0 12px;padding-left:4px;">${b}</li>`
+  ).join('')
+  return `<div style="background:#f5f5f7;border-radius:12px;padding:24px 28px;margin:0 0 14px;font-family:${FONT};">
+  <p style="${LABEL}color:#5CE8D4;">How This Would Work at ${company}</p>
+  <ul style="margin:0;padding:0 0 0 20px;list-style:disc;">
+    ${items}
+  </ul>
+</div>`
+}
+
+function blockROI(text: string): string {
+  return `<div style="background:#f0fff8;border-left:4px solid #5CE8D4;border-radius:0 12px 12px 0;padding:24px 28px;margin:0 0 14px;font-family:${FONT};">
+  <p style="${LABEL}color:#5CE8D4;">Likely Outcomes</p>
+  <p style="${BASE_TEXT}">${text}</p>
+</div>`
+}
+
+function blockTestimonial(t: Testimonial): string {
+  const link = t.case_study_url && t.case_study_url.startsWith('http')
     ? `\n  <a href="${t.case_study_url}" target="_blank" rel="noopener noreferrer" style="display:inline-block;margin-top:12px;font-size:13px;font-weight:600;color:#FF7B8B;text-decoration:none;">Read the case study →</a>`
     : ''
-  return `
-<div style="border-left:4px solid #FF7B8B;padding:16px 20px;margin:28px 0;background:#fff8f9;border-radius:0 8px 8px 0;">
-  <p style="font-size:16px;color:#111118;line-height:1.75;margin:0 0 10px;font-style:italic;">"${t.quote.replace(/^[""]|[""]$/g, '').replace(/"/g, '&quot;')}"</p>
-  <p style="font-size:13px;color:#6b6b80;margin:0;font-weight:600;">— ${t.customer_details || 'ThingLink customer'}</p>${caseStudyLink}
+  return `<div style="border-left:4px solid #FF7B8B;padding:16px 20px;margin:0 0 14px;background:#fff8f9;border-radius:0 8px 8px 0;font-family:${FONT};">
+  <p style="font-size:15px;color:#111118;line-height:1.75;margin:0 0 10px;font-style:italic;">"${cleanQuote(t.quote)}"</p>
+  <p style="font-size:13px;color:#6b6b80;margin:0;font-weight:600;">— ${t.customer_details || 'ThingLink customer'}</p>${link}
 </div>`
 }
 
-// ─────────────────────────────────────────
-// Insert example embed after first paragraph following second H2
-// ─────────────────────────────────────────
-function insertEmbed(body: string, example: Example): string {
-  const embedBlock = `\n\nIn action! Explore this example.\n\n${example.embed_code}\n\n`
-  const h2Matches = [...body.matchAll(/^## .+$/gm)]
-  if (h2Matches.length < 2) return body + embedBlock
-
-  const secondH2 = h2Matches[1]
-  const afterH2 = secondH2.index! + secondH2[0].length
-  const rest = body.slice(afterH2)
-  const paraEnd = rest.search(/\n\n/)
-  if (paraEnd === -1) return body + embedBlock
-
-  const insertPos = afterH2 + paraEnd
-  return body.slice(0, insertPos) + embedBlock + body.slice(insertPos)
-}
-
-// ─────────────────────────────────────────
-// ThingLink CTA block — email-safe
-// ─────────────────────────────────────────
-const CTA_BLOCK = `
-<div style="width:100%;max-width:560px;margin:32px 0;border-radius:14px;overflow:hidden;background:#CC80E0;background:linear-gradient(135deg,#FFB347 0%,#FF7B8B 35%,#CC80E0 65%,#5CE8D4 100%);padding:40px 48px;box-sizing:border-box;text-align:center;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;">
-  <h3 style="font-size:22px;font-weight:600;color:#ffffff;margin:0 0 10px;line-height:1.3;">Ready to get started?</h3>
-  <p style="font-size:15px;color:#ffffff;margin:0 0 24px;max-width:480px;display:inline-block;line-height:1.6;">Book a free 30-minute consultation with a ThingLink specialist and see exactly how it works for your organisation.</p>
-  <br>
-  <a href="https://www.thinglink.com/demo" style="display:inline-block;background:#0a2540;color:#ffffff;font-size:14px;font-weight:600;padding:12px 28px;border-radius:50px;text-decoration:none;">Book your free consultation →</a>
+function blockNextStep(company: string, role: string, interest: string): string {
+  const material = getBlock7Material(role, interest)
+  return `<div style="background:#0a2540;border-radius:12px;padding:32px 36px;margin:0 0 14px;font-family:${FONT};">
+  <p style="font-size:15px;font-weight:700;color:#ffffff;margin:0 0 14px;line-height:1.5;">One way to take this forward — and it isn't a demo deck.</p>
+  <p style="font-size:15px;color:rgba(255,255,255,0.85);margin:0 0 14px;line-height:1.75;">Reply to this email with something from your own world: a ${material} from ${company}. We'll transform it into a working ThingLink scenario and walk through it live with you in a 30-minute session — so you see ${company} inside ThingLink, not a generic demo.</p>
+  <p style="font-size:14px;color:rgba(255,255,255,0.65);margin:0;line-height:1.6;">A paid 90-day pilot starts at €15,000 and ends with measurable evidence — not a slide deck.</p>
 </div>`
+}
 
 // ─────────────────────────────────────────
 // Main generation function
 // ─────────────────────────────────────────
 export async function generateResponse(input: LeadInput): Promise<GeneratedResponse> {
-  const { name, company, role, interest, length = 'medium', language = 'English', thinglinkContent, source } = input
-  const wordCount = LENGTH_WORDS[length]
+  const { name, company, role, interest, language = 'English', thinglinkContent, source } = input
   const firstName = name.split(' ')[0]
 
-  // Fetch testimonials and example in parallel
-  const [testimonials, example] = await Promise.all([
-    fetchTestimonials(interest),
+  const [testimonial, example] = await Promise.all([
+    fetchTestimonial(interest),
     fetchExample(interest),
   ])
 
-  // First testimonial becomes the styled pull-quote; pass the rest to Claude for weaving in
-  const [featuredTestimonial, ...otherTestimonials] = testimonials
-
-  const testimonialsBlock = otherTestimonials.length > 0
-    ? `\nRELEVANT CUSTOMER TESTIMONIALS — weave 1–2 of these naturally into the body text. Quote exactly. Always attribute with the person's name and organisation on a new line after the quote, e.g. — Name, Role, Organisation. Never paraphrase or leave a quote unattributed:\n` +
-      otherTestimonials.map(t => `- Quote: "${t.quote}"\n  Attribution: ${t.customer_details || 'ThingLink customer'}`).join('\n')
+  const languageInstruction = language !== 'English'
+    ? `\n\nIMPORTANT: Write the entire one-pager in ${language}. All headings, body text, and labels must be in ${language}.`
     : ''
-
-  const systemPrompt = `You are a senior ThingLink solutions consultant writing a personalised one-pager for a prospect. Your goal is to create something they'll genuinely find useful — specific, credible, and worth forwarding to a budget holder.
-
-ABOUT THINGLINK:
-ThingLink is an award-winning platform for creating interactive, immersive learning and communication experiences. Used in 150+ countries, it lets educators, trainers, and organisations build interactive images, videos, 360° scenes, virtual environments, branching scenarios, and AR experiences — all without coding. Winner of the UNESCO ICT in Education Prize 2018.
-
-PRODUCTS & FEATURES — use these exact names:
-- ThingLink Media Editor: The core creation tool — add hotspots, quizzes, video, audio, and links to any image, 360° scene, or video.
-- ThingLink Scenario Builder: Branching decision-tree scenarios where learners navigate choices and consequences. Ideal for safety training, clinical skills, customer service, and complex procedures.
-- Pano to 360°: Convert any panoramic photo into a fully interactive 360° immersive scene in minutes.
-- ThingLink AR: Augmented reality experiences learners access on any mobile device — no headset required.
-- AI-Assisted Course Creation: Use AI to generate interactive course outlines, quiz questions, and structured learning pathways from existing content.
-- Immersive Reader: Built-in accessibility and translation tool — supports 60+ languages, text-to-speech, dyslexia fonts, and reading comprehension aids.
-- Accessibility Player: WCAG 2.2 AA compliant playback. All content is fully accessible.
-- LTI/SSO Integration: Works natively with Canvas, Blackboard, Moodle, Google Classroom, and Microsoft Teams — grades sync automatically.
-- 360° Image Library: Shared library of professional 360° environments and scene templates to accelerate creation.
-- Analytics & Checkpoints: Track learner progress, completion rates, and knowledge gaps through embedded interactive checkpoints.
-
-PLANS BY SEGMENT:
-- K-12: Essential (core creation tools, virtual field trips), Enhanced (AI-assisted course creation, 360° video, AR, SSO/LTI), Staff Training (professional development across a school or district)
-- Higher Education / Further Education / VET: Department, College/School, Campus-Wide — scaling from a single faculty to institution-wide rollout
-- Business / Corporate / Healthcare: Custom enterprise plans with advanced analytics, SSO, dedicated onboarding, and support
-
-PROOF POINTS — use these where naturally relevant, never invent new ones:
-- Winner of UNESCO ICT in Education Prize 2018
-- WCAG 2.2 AA compliant — content is fully accessible to all learners
-- Research at Keele University showed 96% positive student feedback on ThingLink-enhanced learning
-- Works on any device: VR headsets, desktop, tablets, and mobile
-- Integrates with Canvas, Blackboard, Moodle, Google for Education, Microsoft, and Canva
-- 60+ languages via Immersive Reader — powerful for multilingual or international cohorts
-- Used in 150+ countries
-
-REAL CASE STUDIES — only reference these by name, and only when the prospect's sector matches:
-- Gradia (Finland): Vocational institute — interactive 360° industrial workshops and safety training
-- Energy Training Academy: ThingLink Scenario Builder for energy sector safety and compliance training
-- Karelia University of Applied Sciences: 360° environments for hands-on vocational learning
-- West Chester University: Immersive learning experiences across university departments
-- HyGGe: Immersive social care and health education scenarios
-- CAST: Accessible, inclusive educational content
-- Keele University: Research showed 96% positive student feedback (Higher Ed context)
-If the prospect's sector doesn't match any of the above, describe outcomes generically (e.g. "one vocational college in Finland") — do not invent named examples.
-
-TONE & STYLE:
-- Warm, direct, and consultative — you're a specialist talking to a real person, not writing a brochure
-- Use the prospect's first name once or twice to keep it human
-- Short paragraphs (2–4 sentences). Use H2 headings to structure sections clearly.
-- Lead with outcomes for their specific role, not feature lists
-- Avoid clichés: "cutting-edge", "game-changing", "seamless", "revolutionary", "transformative"
-- Avoid em dashes (—) entirely. Use full stops or commas instead.
-- Avoid hyphens to join words mid-sentence (e.g. write "no code" not "no-code", "real world" not "real-world"). Only use hyphens in proper product names where required.
-- Write as if you genuinely understand the challenges of their profession
-- Do NOT open with "Hi [name]", "Hello [name]", "Dear [name]" or any salutation. Start directly with the first sentence of content.
-
-STRUCTURE — follow this order:
-1. **Opening paragraph** — weave the prospect's first name naturally into the first sentence or two, acknowledge their role and the specific challenge in their interest area. Make it feel like a conversation, not a mailshot. No greeting line — dive straight in.
-2. **## [Challenge heading]** — name the real pain point this segment faces. Be specific. One paragraph.
-3. **## How ThingLink Can Help** — 2–3 features most relevant to their role and interest, each with a concrete outcome. Not a feature dump — show what changes for them.
-4. **## What Results Look Like** — weave in the provided testimonials and 1–2 relevant proof points (UNESCO Prize, Keele University stat, WCAG compliance) where they fit naturally. Reference a named case study only if the sector matches.
-5. **## Getting Started** — 1 paragraph on the most relevant plan tier(s) for their context, plus a warm next-step invitation (e.g. a 30-minute live demo where you build an example in their context together).
-
-HARD RULES:
-- Do NOT use horizontal rules (---) anywhere in the output
-- Do NOT invent statistics, case studies, or URLs not listed above
-- Do NOT include https://www.thinglink.com/demo in the body — the CTA block is added separately
-- Do NOT mention a contact person's email address — handled elsewhere
-- Respect the word count specified in the instructions
-
-OUTPUT FORMAT: Respond with a single valid JSON object with these exact keys:
-{
-  "title": "string — MUST follow this exact format: 'An Introduction to ThingLink for [Company Name]' — replace [Company Name] with the prospect's actual company name, nothing else",
-  "one_pager_md": "string — the full one-pager in markdown, 500–700 words, with H2 headings"
-}`
 
   const contentContext = thinglinkContent ? `\nThingLink content they viewed: ${thinglinkContent}` : ''
   const sourceContext = source ? `\nCampaign / source: ${source}` : ''
-  const languageInstruction = language !== 'English' ? `\n\nIMPORTANT: Write the entire one-pager in ${language}. All headings, body text, and calls to action must be in ${language}.` : ''
 
-  // Segment-specific feature suggestions to steer Claude
-  const segmentFeatureHints: Record<string, string> = {
-    'K-12 Education': 'Focus on: virtual field trips (Pano to 360°), AR tools for contextual learning, branching scenarios for critical thinking, Immersive Reader for diverse learners, LTI integration with school LMS. Relevant plans: Essential, Enhanced, Staff Training.',
-    'Higher Education': 'Focus on: AI-Assisted Course Creation, Scenario Builder for active learning, Immersive Reader (60+ languages for international students), WCAG 2.2 AA compliance, LTI integration. Relevant plans: Department, College/School, Campus-Wide.',
-    'Corporate Learning & Development': 'Focus on: Scenario Builder for realistic workplace situations, AI-assisted course creation from existing materials, 360° workplace tours, analytics to track completion, SSO integration with corporate systems. Mention Gradia or Energy Training Academy case study if appropriate.',
-    'Healthcare Training': 'Focus on: Scenario Builder for clinical decision-making, 360° ward/facility tours for orientation, accessible content (WCAG 2.2 AA), AI-assisted course creation. Reference HyGGe or CAST if relevant.',
-    'Sales Enablement': 'Focus on: interactive product demos, scenario-based role-play training, 360° showroom or facility tours, analytics on engagement.',
-    'Onboarding & HR': 'Focus on: 360° workplace tours for remote/hybrid onboarding, interactive safety modules, branching scenarios for policy training, analytics and completion tracking, LMS integration.',
-    'Customer Education': 'Focus on: interactive how-to content, 360° product or facility tours, multilingual support via Immersive Reader, embeddable content for any platform.',
-    'Tourism & Heritage': 'Focus on: 360° virtual tours, multilingual visitor guides via Immersive Reader (60+ languages), interactive maps and exhibits, accessible on any device with no app download.',
-    'Government & Public Sector': 'Focus on: accessible content (WCAG 2.2 AA), interactive training modules, 360° site familiarisation, multilingual support, analytics.',
-    'Other': 'Focus on the 2–3 ThingLink features most relevant to their stated role. Prioritise Scenario Builder, AI-Assisted Course Creation, and LMS integration.',
-  }
+  const systemPrompt = `You are a senior ThingLink solutions consultant writing a personalised one-pager for a prospect. Follow the 7-block structure below exactly. Total words for blocks 1–5: 320–380.
 
-  const featureHint = segmentFeatureHints[interest] || segmentFeatureHints['Other']
+ABOUT THINGLINK:
+ThingLink is an award-winning platform for creating interactive, immersive learning experiences — virtual tours, branching scenarios, 360° environments, and AR. Used in 150+ countries. No coding required. Works on any device. Winner of the UNESCO ICT in Education Prize 2018.
 
-  const userPrompt = `Write a personalised ThingLink one-pager for this prospect:
+APPROVED CASE STUDIES — pick the single best match for the prospect's sector. Never invent one not on this list:
+- Mitsubishi Electric UK (manufacturing/industrial): Multi-site VR safety and technical training deployed across multiple countries. Quote: "Hand on heart — ThingLink has been a joy to work with as it's so straightforward to figure out." Steve Clark, Technical Trainer. URL: https://www.thinglink.com/blog/how-mitsubishi-electric-is-creating-innovative-vr-training-with-thinglink/
+- Stora Enso (manufacturing/industrial): VR safety training in 11 languages across global mill sites. Higher engagement and completion rates. Quote: "We now have training in 11 languages. Employees enjoy the training and that's reflected in higher engagement and completion rates." Jolanta, Safety Manager. URL: https://www.thinglink.com/blog/innovative-vr-safety-training-at-stora-enso-with-thinglink-and-meta-quest/
+- Fingrid (utilities/energy): Interactive substation navigation and safety inductions for Finland's national electricity grid. Quote: "ThingLink improves security and makes navigating the substations much easier." Veijo Siiankoski. URL: https://www.thinglink.com/blog/cost-effective-carbon-efficient-and-safe-inductions/
+- Energy Training Academy (vocational/energy): Virtual facility tours for energy efficiency training. Hundreds of learners virtually visiting the academy. Quote: "ThingLink enables us to virtually bring hundreds of schoolchildren into the academy, making our energy efficiency training both engaging and interactive." Andrew Lamond, Director. URL: https://www.thinglink.com/blog/virtual-tour-of-facilities-brings-learners-to-the-energy-training-academy/
+- Keele University (higher education): 360° virtual field trips for Geography. Research showed 96% positive student feedback. Luke Hobson, Technician, School of Geography. URL: null
+- University of Hertfordshire (higher education): Escape room for student inductions. Overwhelmingly positive feedback since 2022, staff freed up during busy periods. Louise Conway, Information Manager. URL: https://www.thinglink.com/blog/hundreds-of-student-inductions-delivered-with-a-thinglink-virtual-escape-room/
+- Stanford University (K-12 education): Virtual field trips for peer learning and student creation. Rachel Wolf, Virtual Field Trips project team. Quote: "When we talk about Collaborative Learning, Peer Learning and Peer feedback, it's a fabulous platform — that's something that all of the Educators and the students rave about!" URL: https://www.thinglink.com/blog/empowering-place-based-learning-through-student-creation-with-stanfords-virtual-learning-resources/
+- Tiffany & Co (corporate/retail L&D): Scenario Builder for retail learning and development. Jason O'Brien, Manager of Instructional Design. Quote: "Creating diverse situations with corresponding results was seamless. The end-of-scenario summary allows learners to receive feedback in the moment." URL: null
+- V&A Dundee (museum/heritage): Interactive digital exhibits, no staff training needed for the tool. Julie Muir, Learning Manager. Quote: "It shows ThingLink's ease of use that we haven't needed to do any staff training on it. It's so intuitive." URL: https://www.thinglink.com/blog/va-dundee-widens-access-with-thinglink/
+- WaterAid (NGO): Immersive 360° supporter experience for fundraising and awareness. Alicia Robinson, Digital Content and Experience Lead. URL: https://www.thinglink.com/blog/interactive-360-experience-wateraid/
+
+APPROVED ROI RANGES (Block 5 — pick 2–3 most applicable to their sector, always as ranges, always include the source line):
+- Manufacturing/Utilities/Industrial: 30–50% reduction in induction and multi-site travel costs; 40–60% faster time-to-site-readiness for new starters and contractors; measurable improvement in safety-critical decision accuracy
+- Corporate L&D/Onboarding: 25–40% faster onboarding to full productivity; 20–35% reduction in content production time; measurable improvement in assessment and retention scores
+- K-12 Education: 20–40% improvement in learner engagement and task completion; 30–50% reduction in educator content-creation time; improved accessibility outcomes across all learner types
+- Higher Education: 25–40% reduction in time creating interactive content; improvement in learner satisfaction and completion scores; multilingual accessibility for international cohorts
+- Healthcare: 25–45% reduction in clinical induction time; improvement in scenario-based training completion rates; accessible content for diverse learner groups
+- Tourism/Heritage/NGO: expanded digital reach to audiences who cannot attend in person; reduced dependency on in-person staff for orientation; multilingual visitor access
+
+BLOCK RULES:
+Block 1 — Personalised hook (~40 words): Open with the prospect's first name in the first sentence. Name their specific role-level pain — not the industry generally. Write like a peer, not a vendor. Do NOT start with "Hi", "Hello", or "Dear".
+Block 2 — Real-problem reframe (~35 words): One sentence naming the pain they think they have. One sentence reframing it to the bigger, budget-level pain.
+Block 3 — Case study (~70 words): Exactly one customer from the approved list, best match by sector. Format: company name + one framing sentence + one exact quote from the approved list + 1–2 outcome figures where available (ranges only, verified only). Include the URL if one is listed.
+Block 4 — How this would work (~90 words): Exactly three bullets. Each leads with what they GET (outcome), not the product feature name. Each bullet ends tied to their specific environment. Do NOT use product names: Scenario Builder, Pano to 360°, Media Editor, ThingLink AR.
+Block 5 — Likely outcomes (~55 words): Open with "For an organisation of [Company]'s scale, comparable customers typically see..." Use 2–3 ranges from the approved list. Close with "Based on outcomes from comparable [sector] customers."
+
+TONE:
+- Warm and direct — a specialist talking to a real person, not a brochure
+- Short sentences. No filler.
+- Do NOT use em dashes. Use commas or full stops.
+- Do NOT use hyphens to join words unless the word requires it
+
+HARD RULES:
+- Do NOT mention plan tiers, pricing, or "Getting Started"
+- Do NOT include "About ThingLink" or any company overview
+- Do NOT use "book a demo", "book a consultation", or similar CTA language anywhere
+- Do NOT invent case studies, statistics, or URLs not in the approved list
+- Do NOT wrap the JSON in markdown code blocks or backticks
+- Do NOT use horizontal rules (---)
+- Blocks 1–5: 320–380 words total
+
+OUTPUT — raw JSON only, no code block wrapper:
+{
+  "title": "An Introduction to ThingLink for [Company Name]",
+  "hook": "Block 1 text (~40 words)",
+  "reframe": "Block 2 text (~35 words)",
+  "case_study_customer": "Company Name — one framing sentence",
+  "case_study_quote": "Exact quote from approved list",
+  "case_study_attribution": "First name Last name, Role, Company",
+  "case_study_outcomes": "Outcome 1 · Outcome 2 (ranges or verified figures only — null if none available)",
+  "case_study_url": "URL from approved list or null",
+  "how_it_works": ["Bullet 1 (~30 words)", "Bullet 2 (~30 words)", "Bullet 3 (~30 words)"],
+  "roi": "Block 5 text (~55 words)"
+}`
+
+  const userPrompt = `Write a one-pager for:
 
 Name: ${name}
 Company: ${company}
 Role: ${role}
 Primary interest: ${interest}${contentContext}${sourceContext}
 
-${testimonialsBlock}
-
-FEATURE FOCUS FOR THIS SEGMENT:
-${featureHint}
-
-INSTRUCTIONS:
-1. Open by addressing ${firstName} directly — acknowledge their specific context as a ${role} at ${company} and name the challenge their segment faces. Make it feel like you know their world.
-2. For "How ThingLink Can Help" — use the feature focus above. Describe 2–3 features with concrete outcomes for their role, not abstract capabilities. E.g. not "Scenario Builder creates branching scenarios" but "With Scenario Builder, your team can practice responding to difficult customer situations in a safe environment — before they face it in real life."
-3. For "What Results Look Like" — weave in the provided customer quotes naturally. Add 1–2 proof points (UNESCO Prize 2018, 96% positive feedback from Keele University research, WCAG 2.2 AA) where they fit. Only name a case study from the approved list if the sector matches.
-4. For "Getting Started" — name the specific plan tier(s) suited to ${company}'s context. Close with a warm, specific invitation: e.g. "I'd love to show you a 30-minute live demo — we can build an example in your context together."
-5. Write ${wordCount} total. Every sentence should earn its place.${languageInstruction}`
+Pick the single best-matching case study from the approved list for their sector.
+Tie all three bullets in block 4 to ${company}'s specific environment — their sites / wards / classrooms / stores / fleet (whatever fits their world).
+Use ROI ranges from the approved list that best match ${interest}.${languageInstruction}`
 
   const response = await anthropic.messages.create({
     model: GENERATION_MODEL,
-    max_tokens: 4000,
+    max_tokens: 3000,
     messages: [{ role: 'user', content: userPrompt }],
     system: systemPrompt,
   })
@@ -339,37 +326,28 @@ INSTRUCTIONS:
 
   let parsed: any
   try {
-    const jsonMatch = rawText.match(/\{[\s\S]*\}/)
+    const cleaned = rawText.replace(/^```(?:json)?\s*/i, '').replace(/\s*```\s*$/, '').trim()
+    const jsonMatch = cleaned.match(/\{[\s\S]*\}/)
     if (!jsonMatch) throw new Error('No JSON found')
     parsed = JSON.parse(jsonMatch[0])
   } catch {
     throw new Error(`Failed to parse response: ${rawText.slice(0, 200)}`)
   }
 
-  let body = parsed.one_pager_md || ''
+  // Assemble the 7 styled blocks
+  const blocks: string[] = [
+    blockHook(parsed.hook || ''),
+    blockReframe(parsed.reframe || ''),
+    blockCaseStudy(parsed, example),
+    blockHowItWorks(parsed.how_it_works || [], company),
+    blockROI(parsed.roi || ''),
+  ]
 
-  // Insert ThingLink example embed
-  if (example) body = insertEmbed(body, example)
-
-  // Insert featured testimonial pull-quote after first H2 paragraph
-  if (featuredTestimonial) {
-    const h2Match = body.match(/^## .+$/m)
-    if (h2Match && h2Match.index !== undefined) {
-      const afterH2 = h2Match.index + h2Match[0].length
-      const rest = body.slice(afterH2)
-      const paraEnd = rest.search(/\n\n/)
-      if (paraEnd !== -1) {
-        const insertPos = afterH2 + paraEnd
-        body = body.slice(0, insertPos) + testimonialBlock(featuredTestimonial) + body.slice(insertPos)
-      }
-    }
-  }
-
-  // Append CTA
-  body = body + '\n\n' + CTA_BLOCK
+  if (testimonial) blocks.push(blockTestimonial(testimonial))
+  blocks.push(blockNextStep(company, role, interest))
 
   return {
     title: parsed.title || `An Introduction to ThingLink for ${company}`,
-    one_pager_md: body,
+    one_pager_md: blocks.join('\n'),
   }
 }
