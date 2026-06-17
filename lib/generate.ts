@@ -213,8 +213,8 @@ export async function generateResponse(input: LeadInput): Promise<GeneratedRespo
   const [featuredTestimonial, ...otherTestimonials] = testimonials
 
   const testimonialsBlock = otherTestimonials.length > 0
-    ? `\nRELEVANT CUSTOMER TESTIMONIALS (weave 1–2 naturally into the text as social proof — quote exactly, attributed correctly):\n` +
-      otherTestimonials.map(t => `- "${t.quote}" — ${t.customer_details || 'ThingLink customer'}`).join('\n')
+    ? `\nRELEVANT CUSTOMER TESTIMONIALS — weave 1–2 of these naturally into the body text. Quote exactly. Always attribute with the person's name and organisation on a new line after the quote, e.g. — Name, Role, Organisation. Never paraphrase or leave a quote unattributed:\n` +
+      otherTestimonials.map(t => `- Quote: "${t.quote}"\n  Attribution: ${t.customer_details || 'ThingLink customer'}`).join('\n')
     : ''
 
   const systemPrompt = `You are a senior ThingLink solutions consultant writing a personalised one-pager for a prospect. Your goal is to create something they'll genuinely find useful — specific, credible, and worth forwarding to a budget holder.
