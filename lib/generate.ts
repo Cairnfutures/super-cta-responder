@@ -254,11 +254,13 @@ function blockTestimonial(t: Testimonial): string {
 }
 
 function blockNextStep(company: string, role: string, interest: string): string {
-  const material = getBlock7Material(role, interest)
   return `<div style="background:#0a2540;border-radius:12px;padding:32px 36px;margin:0 0 14px;font-family:${FONT};">
-  <p style="font-size:15px;font-weight:700;color:#ffffff;margin:0 0 14px;line-height:1.5;">One way to take this forward — and it isn't a demo deck.</p>
-  <p style="font-size:15px;color:rgba(255,255,255,0.85);margin:0 0 14px;line-height:1.75;">Reply to this email with something from your own world: a ${material} from ${company}. We'll transform it into a working ThingLink scenario and walk through it live with you in a 30-minute session — so you see ${company} inside ThingLink, not a generic demo.</p>
-  <p style="font-size:14px;color:rgba(255,255,255,0.65);margin:0;line-height:1.6;">A paid 90-day pilot starts at €15,000 and ends with measurable evidence — not a slide deck.</p>
+  <p style="font-size:18px;font-weight:700;color:#ffffff;margin:0 0 16px;line-height:1.4;">Would you like to see this in action for your organisation?</p>
+  <p style="font-size:15px;color:rgba(255,255,255,0.85);margin:0 0 24px;line-height:1.8;">You are welcome to request a demo and we'll make it relevant to your ideas. Share a document, image, training resource, or piece of content you already use, and we'll tailor the session around it. We'll transform your material into a working ThingLink scenario and walk through it with you live, so you can see your own content brought to life rather than a generic demo.</p>
+  <a href="https://www.thinglink.com/demo" target="_blank" rel="noopener noreferrer"
+    style="display:inline-block;padding:14px 32px;font-size:15px;font-weight:700;color:#ffffff;background:linear-gradient(135deg,#FFB347 0%,#FF7B8B 35%,#CC80E0 65%,#5CE8D4 100%);border-radius:50px;text-decoration:none;letter-spacing:-0.01em;font-family:${FONT};">
+    Request a demo →
+  </a>
 </div>`
 }
 
