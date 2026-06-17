@@ -58,11 +58,19 @@ function CopyButton({ getText, text = '⎘ Copy' }: { getText: () => string; tex
   )
 }
 
+type Length = 'short' | 'medium' | 'long'
+const LENGTH_OPTIONS: { id: Length; label: string; desc: string }[] = [
+  { id: 'short',  label: 'Short',  desc: '300–400 words' },
+  { id: 'medium', label: 'Medium', desc: '500–700 words' },
+  { id: 'long',   label: 'Long',   desc: '800–1000 words' },
+]
+
 export default function RespondPage() {
   const [form, setForm] = useState({
     name: '', company: '', role: '', interest: '',
     thinglinkContent: '', source: '',
   })
+  const [length, setLength] = useState<Length>('medium')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [result, setResult] = useState<{ id: string; title: string; onePagerMd: string } | null>(null)
@@ -104,7 +112,7 @@ export default function RespondPage() {
       const res = await fetch('/api/generate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(form),
+        body: JSON.stringify({ ...form, length }),
       })
       const data = await res.json()
       if (!res.ok) throw new Error(data.error || 'Generation failed')
@@ -169,6 +177,25 @@ export default function RespondPage() {
                     <option value="">Select…</option>
                     {INTEREST_OPTIONS.map(o => <option key={o} value={o}>{o}</option>)}
                   </select>
+                </div>
+
+                <div>
+                  <label style={{ fontSize: 13, color: C.textSub, display: 'block', marginBottom: 8 }}>Length</label>
+                  <div style={{ display: 'flex', gap: 6 }}>
+                    {LENGTH_OPTIONS.map(opt => (
+                      <button key={opt.id} onClick={() => setLength(opt.id)}
+                        style={{
+                          flex: 1, padding: '7px 4px', fontSize: 12, fontWeight: length === opt.id ? 700 : 500,
+                          color: length === opt.id ? '#fff' : C.textSub,
+                          background: length === opt.id ? C.grad : C.bg,
+                          border: `1px solid ${length === opt.id ? 'transparent' : C.border}`,
+                          borderRadius: 8, cursor: 'pointer', fontFamily: C.sans, textAlign: 'center' as const,
+                        }}>
+                        <div>{opt.label}</div>
+                        <div style={{ fontSize: 10, opacity: 0.8, marginTop: 1 }}>{opt.desc}</div>
+                      </button>
+                    ))}
+                  </div>
                 </div>
 
               </div>

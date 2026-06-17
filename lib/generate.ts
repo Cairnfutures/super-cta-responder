@@ -4,11 +4,20 @@ import { supabaseAdmin } from '@/lib/supabase'
 // ─────────────────────────────────────────
 // Types
 // ─────────────────────────────────────────
+export type OnePagerLength = 'short' | 'medium' | 'long'
+
+const LENGTH_WORDS: Record<OnePagerLength, string> = {
+  short:  '300–400 words',
+  medium: '500–700 words',
+  long:   '800–1000 words',
+}
+
 export interface LeadInput {
   name: string
   company: string
   role: string
   interest: string
+  length?: OnePagerLength
   thinglinkContent?: string
   source?: string
 }
@@ -178,7 +187,8 @@ const CTA_BLOCK = `
 // Main generation function
 // ─────────────────────────────────────────
 export async function generateResponse(input: LeadInput): Promise<GeneratedResponse> {
-  const { name, company, role, interest, thinglinkContent, source } = input
+  const { name, company, role, interest, length = 'medium', thinglinkContent, source } = input
+  const wordCount = LENGTH_WORDS[length]
   const firstName = name.split(' ')[0]
 
   // Fetch testimonials and example in parallel
@@ -256,7 +266,7 @@ HARD RULES:
 - Do NOT invent statistics, case studies, or URLs not listed above
 - Do NOT include https://www.thinglink.com/demo in the body — the CTA block is added separately
 - Do NOT mention a contact person's email address — handled elsewhere
-- 500–700 words total for the one_pager_md
+- Respect the word count specified in the instructions
 
 OUTPUT FORMAT: Respond with a single valid JSON object with these exact keys:
 {
@@ -300,7 +310,7 @@ INSTRUCTIONS:
 2. For "How ThingLink Can Help" — use the feature focus above. Describe 2–3 features with concrete outcomes for their role, not abstract capabilities. E.g. not "Scenario Builder creates branching scenarios" but "With Scenario Builder, your team can practice responding to difficult customer situations in a safe environment — before they face it in real life."
 3. For "What Results Look Like" — weave in the provided customer quotes naturally. Add 1–2 proof points (UNESCO Prize 2018, 96% positive feedback from Keele University research, WCAG 2.2 AA) where they fit. Only name a case study from the approved list if the sector matches.
 4. For "Getting Started" — name the specific plan tier(s) suited to ${company}'s context. Close with a warm, specific invitation: e.g. "I'd love to show you a 30-minute live demo — we can build an example in your context together."
-5. Write 500–700 words total. Every sentence should earn its place.`
+5. Write ${wordCount} total. Every sentence should earn its place.`
 
   const response = await anthropic.messages.create({
     model: GENERATION_MODEL,
