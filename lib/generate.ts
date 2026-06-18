@@ -183,7 +183,7 @@ function cleanQuote(q: string): string {
 
 function blockHeader(title: string, name: string, role: string, company: string): string {
   return `<div style="background:linear-gradient(135deg,#FFB347 0%,#FF7B8B 35%,#CC80E0 65%,#5CE8D4 100%);border-radius:12px;padding:36px 36px 32px;margin:0 0 14px;font-family:${FONT};">
-  <img src="https://super-cta-responder.vercel.app/thinglink-logo.png" alt="ThingLink" style="height:22px;width:auto;display:block;margin-bottom:20px;filter:brightness(0) invert(1);" />
+  <svg xmlns="http://www.w3.org/2000/svg" height="22" viewBox="0 0 200 40" style="display:block;margin-bottom:18px;"><text y="32" font-size="34" font-weight="800" fill="white" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,sans-serif" letter-spacing="-1">&#xB7;thinglink&#xB7;</text></svg>
   <p style="font-size:12px;font-weight:700;color:rgba(255,255,255,0.75);letter-spacing:0.1em;text-transform:uppercase;margin:0 0 10px;">Prepared for ${name}, ${role}</p>
   <h1 style="font-size:26px;font-weight:800;color:#ffffff;margin:0;line-height:1.25;letter-spacing:-0.02em;">${title}</h1>
 </div>`
