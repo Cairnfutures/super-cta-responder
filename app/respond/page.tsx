@@ -220,7 +220,7 @@ export default function RespondPage() {
                   </select>
                 </div>
                 <div>
-                  <label style={{ fontSize: 13, color: C.textSub, display: 'block', marginBottom: 5 }}>ThingLink content they viewed</label>
+                  <label style={{ fontSize: 13, color: C.textSub, display: 'block', marginBottom: 5 }}>Example to embed (optional)</label>
                   <input style={field} value={form.embedUrl} onChange={e => set('embedUrl', e.target.value)} placeholder="https://www.thinglink.com/scene/..." />
                 </div>
                 <div>
