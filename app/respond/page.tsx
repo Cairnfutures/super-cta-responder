@@ -75,7 +75,7 @@ const LENGTH_OPTIONS: { id: Length; label: string; desc: string }[] = [
 export default function RespondPage() {
   const [form, setForm] = useState({
     name: '', company: '', role: '', interest: '',
-    thinglinkContent: '', source: '', language: 'English',
+    embedUrl: '', source: '', language: 'English',
   })
   const [length, setLength] = useState<Length>('medium')
   const [loading, setLoading] = useState(false)
@@ -221,7 +221,7 @@ export default function RespondPage() {
                 </div>
                 <div>
                   <label style={{ fontSize: 13, color: C.textSub, display: 'block', marginBottom: 5 }}>ThingLink content they viewed</label>
-                  <input style={field} value={form.thinglinkContent} onChange={e => set('thinglinkContent', e.target.value)} placeholder="e.g. Hospital ward safety tour" />
+                  <input style={field} value={form.embedUrl} onChange={e => set('embedUrl', e.target.value)} placeholder="https://www.thinglink.com/scene/..." />
                 </div>
                 <div>
                   <label style={{ fontSize: 13, color: C.textSub, display: 'block', marginBottom: 5 }}>Source / campaign</label>

@@ -13,6 +13,7 @@ export interface LeadInput {
   interest: string
   length?: OnePagerLength
   language?: string
+  embedUrl?: string
   thinglinkContent?: string
   source?: string
 }
@@ -281,16 +282,19 @@ function looksLikeDomain(s: string): boolean {
 }
 
 export async function generateResponse(input: LeadInput): Promise<GeneratedResponse> {
-  const { name, company, role, interest, language = 'English', thinglinkContent, source } = input
+  const { name, company, role, interest, language = 'English', thinglinkContent, embedUrl, source } = input
   const firstName = name.split(' ')[0]
   const domainMode = looksLikeDomain(company)
 
+  const customEmbed = embedUrl ? embedFromUrl(embedUrl) : null
   const [testimonial, exampleBase, thumbnailUrl] = await Promise.all([
     fetchTestimonial(interest),
     fetchExample(interest),
     fetchAirtableThumbnail(interest),
   ])
-  const example = exampleBase ? { ...exampleBase, thumbnail_url: thumbnailUrl ?? undefined } : null
+  const example = customEmbed
+    ? { name: '', embed_code: customEmbed, thumbnail_url: undefined }
+    : exampleBase ? { ...exampleBase, thumbnail_url: thumbnailUrl ?? undefined } : null
 
   const languageInstruction = language !== 'English'
     ? `\n\nIMPORTANT: Write the entire one-pager in ${language}. All headings, body text, and labels must be in ${language}.`
