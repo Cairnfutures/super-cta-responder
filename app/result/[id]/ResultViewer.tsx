@@ -178,10 +178,10 @@ ${htmlBody}
       {/* Share */}
       <div style={{ ...card, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16 }}>
         <div>
-          <span style={sectionLabel}>Link to Share Draft</span>
-          <p style={{ fontSize: 13, color: C.textSub, margin: 0 }}>Share with a colleague or reseller — they can edit, save, and export the HTML.</p>
+          <span style={sectionLabel}>Share this overview</span>
+          <p style={{ fontSize: 13, color: C.textSub, margin: 0 }}>Send a clean, read-only view of this one-pager — no editing controls.</p>
         </div>
-        <CopyButton getText={() => typeof window !== 'undefined' ? window.location.href : ''} text='⎘ Copy link' />
+        <CopyButton getText={() => typeof window !== 'undefined' ? window.location.origin + '/share/' + id : ''} text='⎘ Copy link' />
       </div>
 
       <p style={{ fontSize: 13, color: C.textMuted, textAlign: 'center', marginTop: 32 }}>
