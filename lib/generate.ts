@@ -323,7 +323,7 @@ APPROVED ROI RANGES (Block 5 — pick 2–3 most applicable to their sector, alw
 - Tourism/Heritage/NGO: expanded digital reach to audiences who cannot attend in person; reduced dependency on in-person staff for orientation; multilingual visitor access
 
 BLOCK RULES:
-Block 1 — Personalised hook (~40 words): Open with the prospect's first name in the first sentence. Name their specific role-level pain — not the industry generally. Write like a peer, not a vendor. Do NOT start with "Hi", "Hello", or "Dear".
+Block 1 — Personalised hook (~40 words): Open by referencing their role and organisation. Do NOT use the prospect's first name anywhere in the one-pager. Name their specific role-level pain — not the industry generally. Write like a peer, not a vendor. Do NOT start with "Hi", "Hello", or "Dear".
 Block 2 — Real-problem reframe (~35 words): One sentence naming the pain they think they have. One sentence reframing it to the bigger, budget-level pain.
 Block 3 — Case study (~70 words): Exactly one customer from the approved list, best match by sector. Format: company name + one framing sentence + one exact quote from the approved list + 1–2 outcome figures where available (ranges only, verified only). Include the URL if one is listed.
 Block 4 — How this would work (~90 words): Exactly three bullets. Each leads with what they GET (outcome), not the product feature name. Each bullet ends tied to their specific environment. Do NOT use product names: Scenario Builder, Pano to 360°, Media Editor, ThingLink AR.
