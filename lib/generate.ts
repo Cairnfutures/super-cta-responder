@@ -281,6 +281,19 @@ function looksLikeDomain(s: string): boolean {
   return /^(https?:\/\/)?([a-z0-9-]+\.)+[a-z]{2,}$/i.test(s.trim()) && !s.includes(' ')
 }
 
+function embedFromUrl(url: string): string | null {
+  if (!url) return null
+  try {
+    const u = new URL(url)
+    const parts = u.pathname.split("/").filter(Boolean)
+    const isScenario = parts.includes("mediacard") || u.pathname.includes("scenario")
+    const id = [...parts].reverse().find(p => /^[0-9]+$/.test(p))
+    if (!id) return null
+    const base = isScenario ? "mediacard" : "card"
+    return '<iframe src="' + "https://www.thinglink.com/" + base + "/" + id + '/embed" width="960" height="720" frameborder="0" scrolling="no" allowfullscreen style="max-width:100%;border-radius:8px;"></iframe>'
+  } catch { return null }
+}
+
 export async function generateResponse(input: LeadInput): Promise<GeneratedResponse> {
   const { name, company, role, interest, language = 'English', thinglinkContent, embedUrl, source } = input
   const firstName = name.split(' ')[0]
