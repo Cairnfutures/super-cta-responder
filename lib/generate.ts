@@ -175,7 +175,7 @@ function getBlock7Material(role: string, interest: string): string {
 // ─────────────────────────────────────────
 const FONT = `'Inter',sans-serif`
 const BASE_TEXT = `font-size:15px;color:#111118;line-height:1.8;margin:0;`
-const LABEL = `font-size:11px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;margin:0 0 12px;`
+const LABEL = `font-size:13px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;margin:0 0 12px;`
 
 function cleanQuote(q: string): string {
   return q.replace(/^[“”""]+|[“”""]+$/g, '').replace(/"/g, '&quot;')
