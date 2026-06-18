@@ -78,7 +78,7 @@ export default function ResultViewer({ id, title: initialTitle, onePagerMd: init
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
 <style>
-  body { margin: 0; padding: 24px; font-family: 'Inter', sans-serif; background: #fff; }
+  body { margin: 0; padding: 24px; background: #f6f9fc; font-family: 'Inter', sans-serif; background: #fff; }
   @media print {
     body { padding: 0; }
     .tl-screen-embed { display: none !important; }

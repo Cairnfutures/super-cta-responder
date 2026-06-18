@@ -21,7 +21,7 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
     '<meta name="viewport" content="width=device-width,initial-scale=1"/>',
     '<title>' + (data.title || 'ThingLink Overview') + '</title>',
     '<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>',
-    '<style>* { box-sizing: border-box; } body { margin: 0; padding: 40px 24px 80px; background: #f5f5f7; font-family: Inter, -apple-system, sans-serif; }</style>',
+    '<style>* { box-sizing: border-box; } body { margin: 0; padding: 40px 24px 80px; background: #f6f9fc; font-family: Inter, -apple-system, sans-serif; }</style>',
     '</head><body>',
     '<div style="max-width:720px;margin:0 auto">',
     data.one_pager_md,
