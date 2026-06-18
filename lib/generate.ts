@@ -281,12 +281,9 @@ function looksLikeDomain(s: string): boolean {
   return /^(https?:\/\/)?([a-z0-9-]+\.)+[a-z]{2,}$/i.test(s.trim()) && !s.includes(' ')
 }
 
-function embedFromUrl(url: string): string | null {
-  if (!url) return null
-  try {
-    const embedSrc = url.replace(/\/+$/, "") + "/embed"
-    return '<iframe src="' + embedSrc + '" width="960" height="720" frameborder="0" scrolling="no" allowfullscreen style="max-width:100%;border-radius:8px;"></iframe>'
-  } catch { return null }
+function embedFromUrl(embedCode: string): string | null {
+  if (!embedCode || !embedCode.trim()) return null
+  return embedCode.trim()
 }
 
 export async function generateResponse(input: LeadInput): Promise<GeneratedResponse> {

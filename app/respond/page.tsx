@@ -221,7 +221,7 @@ export default function RespondPage() {
                 </div>
                 <div>
                   <label style={{ fontSize: 13, color: C.textSub, display: 'block', marginBottom: 5 }}>Example to embed (optional)</label>
-                  <input style={field} value={form.embedUrl} onChange={e => set('embedUrl', e.target.value)} placeholder="https://www.thinglink.com/scene/..." />
+                  <input style={field} value={form.embedUrl} onChange={e => set('embedUrl', e.target.value)} placeholder="<iframe src=...></iframe>" />
                 </div>
                 <div>
                   <label style={{ fontSize: 13, color: C.textSub, display: 'block', marginBottom: 5 }}>Source / campaign</label>
