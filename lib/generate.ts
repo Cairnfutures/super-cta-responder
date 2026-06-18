@@ -284,13 +284,8 @@ function looksLikeDomain(s: string): boolean {
 function embedFromUrl(url: string): string | null {
   if (!url) return null
   try {
-    const u = new URL(url)
-    const parts = u.pathname.split("/").filter(Boolean)
-    const isScenario = parts.includes("mediacard") || u.pathname.includes("scenario")
-    const id = [...parts].reverse().find(p => /^[0-9]+$/.test(p))
-    if (!id) return null
-    const base = isScenario ? "mediacard" : "card"
-    return '<iframe src="' + "https://www.thinglink.com/" + base + "/" + id + '/embed" width="960" height="720" frameborder="0" scrolling="no" allowfullscreen style="max-width:100%;border-radius:8px;"></iframe>'
+    const embedSrc = url.replace(/\/+$/, "") + "/embed"
+    return '<iframe src="' + embedSrc + '" width="960" height="720" frameborder="0" scrolling="no" allowfullscreen style="max-width:100%;border-radius:8px;"></iframe>'
   } catch { return null }
 }
 
