@@ -156,8 +156,13 @@ ${htmlBody}
         </div>
 
         {tab === 'preview' && (
-          <div style={{ fontSize: 15, color: C.text, lineHeight: 1.85 }}
-            dangerouslySetInnerHTML={{ __html: htmlBody }} suppressHydrationWarning />
+          <div
+            contentEditable
+            suppressContentEditableWarning
+            style={{ fontSize: 15, color: C.text, lineHeight: 1.85, outline: 'none', minHeight: 200 }}
+            dangerouslySetInnerHTML={{ __html: htmlBody }}
+            onInput={e => setBody((e.currentTarget as HTMLDivElement).innerHTML)}
+          />
         )}
 
         {tab === 'markdown' && (
