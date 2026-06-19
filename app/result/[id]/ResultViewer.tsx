@@ -60,9 +60,10 @@ export default function ResultViewer({ id, title: initialTitle, onePagerMd: init
 
   const htmlBody = useMemo(() => marked.parse(body) as string, [body])
   const previewRef = useRef<HTMLDivElement>(null)
+  const previewEdited = useRef(false)
 
   useEffect(() => {
-    if (previewRef.current) {
+    if (previewRef.current && !previewEdited.current) {
       previewRef.current.innerHTML = htmlBody
     }
   }, [htmlBody])
@@ -168,7 +169,7 @@ ${htmlBody}
             contentEditable
             suppressContentEditableWarning
             style={{ fontSize: 15, color: C.text, lineHeight: 1.85, outline: 'none', minHeight: 200 }}
-            onInput={e => setBody((e.currentTarget as HTMLDivElement).innerHTML)}
+            onInput={e => { previewEdited.current = true; setBody((e.currentTarget as HTMLDivElement).innerHTML) }}
           />
         )}
 
