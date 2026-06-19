@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useRef, useEffect } from 'react'
 import { marked } from '@/lib/marked'
 
 const C = {
@@ -59,6 +59,13 @@ export default function ResultViewer({ id, title: initialTitle, onePagerMd: init
   const [saved, setSaved] = useState(false)
 
   const htmlBody = useMemo(() => marked.parse(body) as string, [body])
+  const previewRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    if (previewRef.current) {
+      previewRef.current.innerHTML = htmlBody
+    }
+  }, [htmlBody])
 
   const tabs: { id: Tab; label: string }[] = [
     { id: 'preview',  label: 'Preview' },
@@ -157,10 +164,10 @@ ${htmlBody}
 
         {tab === 'preview' && (
           <div
+            ref={previewRef}
             contentEditable
             suppressContentEditableWarning
             style={{ fontSize: 15, color: C.text, lineHeight: 1.85, outline: 'none', minHeight: 200 }}
-            dangerouslySetInnerHTML={{ __html: htmlBody }}
             onInput={e => setBody((e.currentTarget as HTMLDivElement).innerHTML)}
           />
         )}
