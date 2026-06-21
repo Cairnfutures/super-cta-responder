@@ -92,6 +92,25 @@ export default function ResultViewer({ id, title: initialTitle, onePagerMd: init
     // Temporarily hide embeds and show print thumbs
     previewEl.querySelectorAll('.tl-screen-embed').forEach((el: any) => el.style.display = 'none')
     previewEl.querySelectorAll('.tl-print-thumb').forEach((el: any) => el.style.display = 'block')
+
+    // Collect clickable link positions BEFORE rasterising (DOM still live at this point)
+    const previewRect = previewEl.getBoundingClientRect()
+    const pxToMm = 210 / previewEl.offsetWidth
+    const linkAnnotations: Array<{ url: string; x: number; y: number; w: number; h: number }> = []
+    previewEl.querySelectorAll('.tl-print-thumb a[href]').forEach((el: any) => {
+      const r = el.getBoundingClientRect()
+      const url = el.getAttribute('href')
+      if (url && url.startsWith('http')) {
+        linkAnnotations.push({
+          url,
+          x: (r.left - previewRect.left) * pxToMm,
+          y: (r.top  - previewRect.top)  * pxToMm,
+          w: r.width  * pxToMm,
+          h: r.height * pxToMm,
+        })
+      }
+    })
+
     const canvas = await html2canvas(previewEl, {
       scale: 2,
       useCORS: true,
@@ -106,6 +125,11 @@ export default function ResultViewer({ id, title: initialTitle, onePagerMd: init
     const pdfH = Math.ceil((canvas.height * pdfW) / canvas.width)
     const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: [pdfW, pdfH] })
     pdf.addImage(imgData, 'JPEG', 0, 0, pdfW, pdfH)
+
+    // Overlay clickable link annotations (jsPDF preserves these as real PDF links)
+    linkAnnotations.forEach(({ url, x, y, w, h }) => {
+      pdf.link(x, y, w, h, { url })
+    })
     const filename = title.replace(/[^a-z0-9 ]/gi, '').replace(/\s+/g, '-').toLowerCase()
     pdf.save(`${filename}.pdf`)
   }
