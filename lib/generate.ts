@@ -223,16 +223,11 @@ function blockCaseStudy(parsed: any, labels: any): string {
 }
 
 function blockExample(example: Example | null): string {
-  const embedSection = !example || !example.embed_code
-    ? `<p style="font-size:13px;color:#6b6b80;margin:0 0 12px;padding:16px;background:rgba(108,99,255,0.06);border-radius:8px;text-align:center;">Contact us to explore a live ThingLink example for your use case</p>`
-    : `<div class="tl-screen-embed" style="margin:0 0 12px;overflow:hidden;border-radius:8px;">${example.embed_code.replace(/width=["']?\d+["']?/g, 'width="100%"').replace(/height=["']?\d+["']?/g, 'height="500"')}</div>`
+  const embedSection = `<div class="tl-screen-embed" style="margin:0 0 12px;overflow:hidden;border-radius:8px;">${example!.embed_code.replace(/width=["']?\d+["']?/g, 'width="100%"').replace(/height=["']?\d+["']?/g, 'height="500"')}</div>`
   return `<div style="background:linear-gradient(135deg,rgba(108,99,255,0.10) 0%,rgba(92,232,212,0.10) 100%);border:1px solid rgba(108,99,255,0.20);border-radius:12px;padding:24px 28px;margin:0 0 14px;box-shadow:0 2px 16px rgba(108,99,255,0.12);font-family:${FONT};">
   <p style="${LABEL}color:#6c63ff;">ThingLink in Action</p>
   ${example?.name ? `<p style="font-size:14px;font-weight:600;color:#111118;margin:0 0 16px;">${example.name}</p>` : ''}
   ${embedSection}
-  <div style="text-align:right;margin-top:4px;">
-    <img src="/thinglink-logo.png" style="height:18px;opacity:0.7;filter:brightness(0);pointer-events:none;" alt="ThingLink" />
-  </div>
 </div>`
 }
 
@@ -278,6 +273,9 @@ function blockNextStep(company: string, role: string, interest: string, labels: 
     style="display:inline-block;padding:14px 32px;font-size:15px;font-weight:700;color:#ffffff;background:linear-gradient(135deg,#FFB347 0%,#FF7B8B 35%,#CC80E0 65%,#5CE8D4 100%);border-radius:50px;text-decoration:none;letter-spacing:-0.01em;font-family:${FONT};">
     ${buttonText}
   </a>
+  <div style="text-align:right;margin-top:20px;">
+    <img src="/thinglink-logo.png" style="height:22px;opacity:0.9;filter:brightness(0) invert(1);pointer-events:none;" alt="ThingLink" />
+  </div>
 </div>`
 }
 
@@ -448,7 +446,7 @@ Use ROI ranges from the approved list that best match ${interest}.${languageInst
     blockHook(parsed.hook || ''),
     blockReframe(parsed.reframe || ''),
     blockCaseStudy(parsed, labels),
-    blockExample(example),
+    example && example.embed_code ? blockExample(example) : '',
     blockHowItWorks(parsed.how_it_works || [], company, labels),
     blockROI(parsed.roi || '', labels),
   ]
