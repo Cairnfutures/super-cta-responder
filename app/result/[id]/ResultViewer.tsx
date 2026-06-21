@@ -102,16 +102,10 @@ export default function ResultViewer({ id, title: initialTitle, onePagerMd: init
     previewEl.querySelectorAll('.tl-screen-embed').forEach((el: any) => el.style.display = '')
     previewEl.querySelectorAll('.tl-print-thumb').forEach((el: any) => el.style.display = '')
     const imgData = canvas.toDataURL('image/jpeg', 0.92)
-    const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' })
-    const pdfW = pdf.internal.pageSize.getWidth()
-    const pdfH = pdf.internal.pageSize.getHeight()
-    const imgH = (canvas.height * pdfW) / canvas.width
-    let y = 0
-    while (y < imgH) {
-      if (y > 0) pdf.addPage()
-      pdf.addImage(imgData, 'JPEG', 0, -y, pdfW, imgH)
-      y += pdfH
-    }
+    const pdfW = 210 // A4 width in mm
+    const pdfH = Math.ceil((canvas.height * pdfW) / canvas.width)
+    const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: [pdfW, pdfH] })
+    pdf.addImage(imgData, 'JPEG', 0, 0, pdfW, pdfH)
     const filename = title.replace(/[^a-z0-9 ]/gi, '').replace(/\s+/g, '-').toLowerCase()
     pdf.save(`${filename}.pdf`)
   }

@@ -493,6 +493,19 @@ Use ROI ranges from the approved list that best match ${interest}.${languageInst
     throw new Error(`Failed to parse response: ${rawText.slice(0, 200)}`)
   }
 
+  // Post-process: strip em dashes and en dashes from all generated text
+  function sanitiseDashes(obj: any): any {
+    if (typeof obj === 'string') return obj.replace(/—/g, ',').replace(/–/g, '-')
+    if (Array.isArray(obj)) return obj.map(sanitiseDashes)
+    if (obj && typeof obj === 'object') {
+      const out: any = {}
+      for (const k of Object.keys(obj)) out[k] = sanitiseDashes(obj[k])
+      return out
+    }
+    return obj
+  }
+  parsed = sanitiseDashes(parsed)
+
   // Assemble the 7 styled blocks
   const title = parsed.title || `An Introduction to ThingLink for ${company}`
   const labels = parsed.labels || {}
