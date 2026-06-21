@@ -38,6 +38,7 @@ const INTEREST_TO_SECTORS: Record<string, string[]> = {
   'Tourism & Heritage':                   ['museum', 'ngo'],
   'Government & Public Sector':           ['utilities', 'ngo'],
   'VR / XR Experiences':                 ['manufacturing', 'corporate', 'higher_edu'],
+  'Technical & Vocational':              ['vocational', 'manufacturing', 'corporate'],
   'Other':                                ['corporate', 'higher_edu'],
 }
 
@@ -52,6 +53,7 @@ const INTEREST_TO_INDUSTRY: Record<string, string[]> = {
   'Tourism & Heritage':                   ['Museum', 'Travel', 'Hospitality', 'Culture'],
   'Government & Public Sector':           ['Energy', 'Water', 'Charity', 'Transportation'],
   'VR / XR Experiences':                 ['General Enterprise', 'Manufacturing', 'Education'],
+  'Technical & Vocational':              ['Vocational', 'Manufacturing', 'Technical', 'TVET'],
   'Other':                                ['General Enterprise', 'Education'],
 }
 

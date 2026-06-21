@@ -32,6 +32,7 @@ const INTEREST_OPTIONS = [
   'Customer Education',
   'Tourism & Heritage',
   'Government & Public Sector',
+  'Technical & Vocational',
   'Other',
 ]
 
