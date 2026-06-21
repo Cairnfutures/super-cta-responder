@@ -129,7 +129,8 @@ async function fetchAirtableThumbnail(interest: string): Promise<string | null> 
 // ─────────────────────────────────────────
 function normaliseExample(row: any): Example | null {
   const embed = row['embed_code'] ?? row['embed-code'] ?? null
-  return { name: row.name ?? '', embed_code: embed ?? '' }
+  if (!embed) return null
+  return { name: row.name ?? '', embed_code: embed }
 }
 
 async function fetchExample(interest: string): Promise<Example | null> {
@@ -143,12 +144,13 @@ async function fetchExample(interest: string): Promise<Example | null> {
         .ilike(column, `%${keyword}%`)
         .limit(10)
       const rows = (data || []).map(normaliseExample).filter(Boolean) as Example[]
+      console.log(`[fetchExample] ${column}=${keyword}: ${data?.length ?? 0} rows, ${rows.length} with embed`)
       if (rows.length > 0) return rows[Math.floor(Math.random() * rows.length)]
     }
   }
 
   const { data, error } = await supabaseAdmin.from('examples').select('*').limit(20)
-  console.log('[fetchExample] fallback:', { count: data?.length ?? 0, error, cols: data?.[0] ? Object.keys(data[0]) : [] })
+  console.log('[fetchExample] fallback:', { count: data?.length ?? 0, error, cols: data?.[0] ? Object.keys(data[0]) : [], withEmbed: (data || []).map(normaliseExample).filter(Boolean).length })
   const rows = (data || []).map(normaliseExample).filter(Boolean) as Example[]
   if (rows.length === 0) return null
   return rows[Math.floor(Math.random() * rows.length)]
@@ -223,10 +225,11 @@ function blockCaseStudy(parsed: any, labels: any): string {
 }
 
 function blockExample(example: Example | null): string {
-  const embedSection = `<div class="tl-screen-embed" style="margin:0 0 12px;overflow:hidden;border-radius:8px;">${example!.embed_code.replace(/width=["']?\d+["']?/g, 'width="100%"').replace(/height=["']?\d+["']?/g, 'height="500"')}</div>`
+  if (!example?.embed_code) return ''
+  const embedSection = `<div class="tl-screen-embed" style="margin:0 0 12px;overflow:hidden;border-radius:8px;">${example.embed_code.replace(/width=["']?\d+["']?/g, 'width="100%"').replace(/height=["']?\d+["']?/g, 'height="500"')}</div>`
   return `<div style="background:linear-gradient(135deg,rgba(108,99,255,0.10) 0%,rgba(92,232,212,0.10) 100%);border:1px solid rgba(108,99,255,0.20);border-radius:12px;padding:24px 28px;margin:0 0 14px;box-shadow:0 2px 16px rgba(108,99,255,0.12);font-family:${FONT};">
   <p style="${LABEL}color:#6c63ff;">ThingLink in Action</p>
-  ${example?.name ? `<p style="font-size:14px;font-weight:600;color:#111118;margin:0 0 16px;">${example.name}</p>` : ''}
+  ${example.name ? `<p style="font-size:14px;font-weight:600;color:#111118;margin:0 0 16px;">${example.name}</p>` : ''}
   ${embedSection}
 </div>`
 }
@@ -446,7 +449,7 @@ Use ROI ranges from the approved list that best match ${interest}.${languageInst
     blockHook(parsed.hook || ''),
     blockReframe(parsed.reframe || ''),
     blockCaseStudy(parsed, labels),
-    example && example.embed_code ? blockExample(example) : '',
+    blockExample(example),
     blockHowItWorks(parsed.how_it_works || [], company, labels),
     blockROI(parsed.roi || '', labels),
   ]
