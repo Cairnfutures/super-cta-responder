@@ -32,7 +32,6 @@ const INTEREST_OPTIONS = [
   'Customer Education',
   'Tourism & Heritage',
   'Government & Public Sector',
-  'VR / XR Experiences',
   'Other',
 ]
 
@@ -75,7 +74,7 @@ const LENGTH_OPTIONS: { id: Length; label: string; desc: string }[] = [
 export default function RespondPage() {
   const [form, setForm] = useState({
     name: '', company: '', role: '', interest: '',
-    embedUrl: '', source: '', language: 'English',
+    useCaseIdea: '', embedUrl: '', source: '', language: 'English',
   })
   const [length, setLength] = useState<Length>('medium')
   const [loading, setLoading] = useState(false)
@@ -220,8 +219,12 @@ export default function RespondPage() {
                   </select>
                 </div>
                 <div>
-                  <label style={{ fontSize: 13, color: C.textSub, display: 'block', marginBottom: 5 }}>Example to embed (optional)</label>
-                  <input style={field} value={form.embedUrl} onChange={e => set('embedUrl', e.target.value)} placeholder="<iframe src=...></iframe>" />
+                  <label style={{ fontSize: 13, color: C.textSub, display: 'block', marginBottom: 5 }}>Initial use case idea</label>
+                  <input style={field} value={form.useCaseIdea} onChange={e => set('useCaseIdea', e.target.value)} placeholder="e.g. virtual tour, 360° lab, onboarding module" />
+                </div>
+                <div>
+                  <label style={{ fontSize: 13, color: C.textSub, display: 'block', marginBottom: 5 }}>Example to embed (paste embed code from ThingLink Share dialog)</label>
+                  <textarea style={{ ...field, fontFamily: 'monospace', fontSize: 12, resize: 'vertical' as any }} rows={3} value={form.embedUrl} onChange={e => set('embedUrl', e.target.value)} placeholder="<iframe width='960' height='640' ..." />
                 </div>
                 <div>
                   <label style={{ fontSize: 13, color: C.textSub, display: 'block', marginBottom: 5 }}>Source / campaign</label>

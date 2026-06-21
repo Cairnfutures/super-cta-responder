@@ -61,7 +61,6 @@ export default function ResultViewer({ id, title: initialTitle, onePagerMd: init
   const htmlBody = useMemo(() => marked.parse(body) as string, [body])
   const previewRef = useRef<HTMLDivElement>(null)
   const previewEdited = useRef(false)
-
   useEffect(() => {
     if (previewRef.current && !previewEdited.current) {
       previewRef.current.innerHTML = htmlBody
@@ -86,7 +85,7 @@ export default function ResultViewer({ id, title: initialTitle, onePagerMd: init
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
 <style>
-  body { margin: 0; padding: 24px; background: #f6f9fc; font-family: 'Inter', sans-serif; background: #fff; }
+  body { margin: 0; padding: 24px; font-family: 'Inter', sans-serif; background: #fff; }
   @media print {
     body { padding: 0; }
     .tl-screen-embed { display: none !important; }
@@ -164,13 +163,9 @@ ${htmlBody}
         </div>
 
         {tab === 'preview' && (
-          <div
-            ref={previewRef}
-            contentEditable
-            suppressContentEditableWarning
+          <div ref={previewRef} contentEditable suppressContentEditableWarning
             style={{ fontSize: 15, color: C.text, lineHeight: 1.85, outline: 'none', minHeight: 200 }}
-            onInput={e => { previewEdited.current = true; setBody((e.currentTarget as HTMLDivElement).innerHTML) }}
-          />
+            onInput={e => { previewEdited.current = true; setBody((e.currentTarget as HTMLDivElement).innerHTML) }} />
         )}
 
         {tab === 'markdown' && (
@@ -191,10 +186,13 @@ ${htmlBody}
       {/* Share */}
       <div style={{ ...card, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16 }}>
         <div>
-          <span style={sectionLabel}>Share this overview</span>
-          <p style={{ fontSize: 13, color: C.textSub, margin: 0 }}>Send a clean, read-only view of this one-pager — no editing controls.</p>
+          <span style={sectionLabel}>Share with Customer</span>
+          <p style={{ fontSize: 13, color: C.textSub, margin: 0 }}>Clean, shareable link — no editing UI.</p>
+          <p style={{ fontSize: 12, color: C.textMuted, margin: '4px 0 0', fontFamily: C.mono }}>
+            {typeof window !== 'undefined' ? `${window.location.origin}/share/${id}` : ''}
+          </p>
         </div>
-        <CopyButton getText={() => typeof window !== 'undefined' ? window.location.origin + '/share/' + id : ''} text='⎘ Copy link' />
+        <CopyButton getText={() => typeof window !== 'undefined' ? `${window.location.origin}/share/${id}` : ''} text='⎘ Copy link' />
       </div>
 
       <p style={{ fontSize: 13, color: C.textMuted, textAlign: 'center', marginTop: 32 }}>

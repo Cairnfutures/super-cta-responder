@@ -5,14 +5,14 @@ import { supabaseAdmin } from '@/lib/supabase'
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json()
-    const { name, company, role, interest, thinglinkContent, embedUrl, source, language, length } = body
+    const { name, company, role, interest, useCaseIdea, embedUrl, source, language, length } = body
 
     if (!name || !company || !role || !interest) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 })
     }
 
     // Generate the one-pager via Claude
-    const result = await generateResponse({ name, company, role, interest, thinglinkContent, embedUrl, source, language, length })
+    const result = await generateResponse({ name, company, role, interest, useCaseIdea, embedUrl, source, language, length })
 
     // Save to Supabase
     const { data, error } = await supabaseAdmin
@@ -22,7 +22,7 @@ export async function POST(req: NextRequest) {
         company,
         role,
         interest,
-        thinglink_content: thinglinkContent || null,
+        thinglink_content: embedUrl || null,
         source: source || null,
         title: result.title,
         one_pager_md: result.one_pager_md,
