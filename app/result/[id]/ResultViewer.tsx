@@ -125,7 +125,7 @@ export default function ResultViewer({ id, title: initialTitle, onePagerMd: init
     const previewRect = previewEl.getBoundingClientRect()
     const pxToMm = 210 / previewEl.offsetWidth
     const linkAnnotations: Array<{ url: string; x: number; y: number; w: number; h: number }> = []
-    previewEl.querySelectorAll('.tl-print-thumb a[href]').forEach((el: any) => {
+    previewEl.querySelectorAll('a[href]').forEach((el: any) => {
       const r = el.getBoundingClientRect()
       const url = el.getAttribute('href')
       if (url && url.startsWith('http')) {
