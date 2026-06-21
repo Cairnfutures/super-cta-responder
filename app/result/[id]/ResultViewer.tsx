@@ -93,6 +93,34 @@ export default function ResultViewer({ id, title: initialTitle, onePagerMd: init
     previewEl.querySelectorAll('.tl-screen-embed').forEach((el: any) => el.style.display = 'none')
     previewEl.querySelectorAll('.tl-print-thumb').forEach((el: any) => el.style.display = 'block')
 
+    // Pre-render logos that use CSS filter (html2canvas ignores filter property)
+    // We draw each img onto an offscreen canvas with the filter applied, swap src, then restore
+    const logoRestoreQueue: Array<{ el: HTMLImageElement; originalSrc: string; originalFilter: string }> = []
+    await Promise.all(
+      Array.from(previewEl.querySelectorAll('img')).map(async (img: any) => {
+        const filterStyle = img.style.filter || ''
+        if (!filterStyle.includes('invert')) return
+        await new Promise<void>(resolve => {
+          const doSwap = () => {
+            try {
+              const oc = document.createElement('canvas')
+              oc.width  = img.naturalWidth  || img.width  || 200
+              oc.height = img.naturalHeight || img.height || 40
+              const ctx = oc.getContext('2d')!
+              ctx.filter = filterStyle
+              ctx.drawImage(img, 0, 0, oc.width, oc.height)
+              logoRestoreQueue.push({ el: img, originalSrc: img.src, originalFilter: filterStyle })
+              img.src = oc.toDataURL()
+              img.style.filter = 'none'
+            } catch {}
+            resolve()
+          }
+          if (img.complete && img.naturalWidth) { doSwap() }
+          else { img.onload = doSwap; img.onerror = () => resolve() }
+        })
+      })
+    )
+
     // Collect clickable link positions BEFORE rasterising (DOM still live at this point)
     const previewRect = previewEl.getBoundingClientRect()
     const pxToMm = 210 / previewEl.offsetWidth
@@ -117,9 +145,13 @@ export default function ResultViewer({ id, title: initialTitle, onePagerMd: init
       backgroundColor: '#ffffff',
       logging: false,
     })
-    // Restore
+    // Restore embeds and logos
     previewEl.querySelectorAll('.tl-screen-embed').forEach((el: any) => el.style.display = '')
     previewEl.querySelectorAll('.tl-print-thumb').forEach((el: any) => el.style.display = '')
+    logoRestoreQueue.forEach(({ el, originalSrc, originalFilter }) => {
+      el.src = originalSrc
+      el.style.filter = originalFilter
+    })
     const imgData = canvas.toDataURL('image/jpeg', 0.92)
     const pdfW = 210 // A4 width in mm
     const pdfH = Math.ceil((canvas.height * pdfW) / canvas.width)
