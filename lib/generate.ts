@@ -230,13 +230,33 @@ function blockCaseStudy(parsed: any, labels: any): string {
 </div>`
 }
 
+function extractThingLinkUrl(embedCode: string): string | null {
+  const m = embedCode.match(/src=["']([^"']+)["']/i)
+  return m ? m[1] : null
+}
+
 function blockExample(example: Example | null): string {
   if (!example?.embed_code) return ''
+  const tlUrl = extractThingLinkUrl(example.embed_code)
   const embedSection = `<div class="tl-screen-embed" style="margin:0 0 12px;overflow:hidden;border-radius:8px;">${example.embed_code.replace(/width=["']?\d+["']?/g, 'width="100%"').replace(/height=["']?\d+["']?/g, 'height="500"')}</div>`
+
+  const thumbSection = (example as any).thumbnail_url
+    ? `<div class="tl-print-thumb" style="display:none;margin:0 0 12px;">
+        ${tlUrl ? `<a href="${tlUrl}" target="_blank" style="display:block;">` : ''}
+        <img src="${(example as any).thumbnail_url}" alt="${example.name || 'ThingLink example'}" style="width:100%;border-radius:8px;display:block;" />
+        ${tlUrl ? `</a><a href="${tlUrl}" target="_blank" style="display:inline-block;margin-top:10px;font-size:13px;font-weight:600;color:#6c63ff;text-decoration:none;">View interactive experience →</a>` : ''}
+      </div>`
+    : tlUrl
+      ? `<div class="tl-print-thumb" style="display:none;margin:0 0 12px;padding:16px;background:#f0efff;border-radius:8px;text-align:center;">
+          <a href="${tlUrl}" target="_blank" style="font-size:14px;font-weight:600;color:#6c63ff;text-decoration:none;">View interactive ThingLink experience →</a>
+        </div>`
+      : ''
+
   return `<div style="background:linear-gradient(135deg,rgba(108,99,255,0.10) 0%,rgba(92,232,212,0.10) 100%);border:1px solid rgba(108,99,255,0.20);border-radius:12px;padding:24px 28px;margin:0 0 14px;box-shadow:0 2px 16px rgba(108,99,255,0.12);font-family:${FONT};">
   <p style="${LABEL}color:#6c63ff;">ThingLink in Action</p>
   ${example.name ? `<p style="font-size:14px;font-weight:600;color:#111118;margin:0 0 16px;">${example.name}</p>` : ''}
   ${embedSection}
+  ${thumbSection}
 </div>`
 }
 

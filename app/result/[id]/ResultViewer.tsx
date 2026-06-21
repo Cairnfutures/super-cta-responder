@@ -83,33 +83,7 @@ export default function ResultViewer({ id, title: initialTitle, onePagerMd: init
   ]
 
   function handleDownloadPDF() {
-    const printWindow = window.open('', '_blank')
-    if (!printWindow) return
-    printWindow.document.write(`<!DOCTYPE html>
-<html>
-<head>
-<meta charset="utf-8">
-<title>${title}</title>
-<link rel="preconnect" href="https://fonts.googleapis.com" />
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-<style>
-  body { margin: 0; padding: 24px; font-family: 'Inter', sans-serif; background: #fff; }
-  @media print {
-    body { padding: 0; }
-    .tl-screen-embed { display: none !important; }
-    .tl-print-thumb { display: block !important; }
-  }
-  .tl-screen-embed { display: none; }
-  .tl-print-thumb { display: block; }
-</style>
-</head>
-<body>
-${htmlBody}
-<script>window.onload = function(){ setTimeout(function(){ window.print(); }, 300); }</script>
-</body>
-</html>`)
-    printWindow.document.close()
+    window.open(`/api/pdf/${id}`, '_blank')
   }
 
   async function handleSave() {
