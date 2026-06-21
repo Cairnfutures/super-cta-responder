@@ -33,12 +33,21 @@ const sectionLabel: React.CSSProperties = {
 
 type Tab = 'preview' | 'markdown' | 'html'
 
-function CopyButton({ getText, text = '⎘ Copy' }: { getText: () => string; text?: string }) {
+function ClipboardIcon() {
+  return (
+    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ display: 'inline', verticalAlign: 'middle', marginRight: 5 }}>
+      <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
+      <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+    </svg>
+  )
+}
+
+function CopyButton({ getText, text = 'Copy' }: { getText: () => string; text?: string }) {
   const [copied, setCopied] = useState(false)
   return (
     <button onClick={() => { navigator.clipboard.writeText(getText()); setCopied(true); setTimeout(() => setCopied(false), 2000) }}
-      style={{ fontSize: 12, padding: '5px 14px', border: `1px solid ${C.border}`, borderRadius: 6, color: C.textSub, background: C.bg, cursor: 'pointer', fontFamily: C.sans, fontWeight: 500 }}>
-      {copied ? '✓ Copied' : text}
+      style={{ fontSize: 12, padding: '5px 14px', border: `1px solid ${C.border}`, borderRadius: 6, color: C.textSub, background: C.bg, cursor: 'pointer', fontFamily: C.sans, fontWeight: 500, whiteSpace: 'nowrap' }}>
+      {copied ? '✓ Copied' : <><ClipboardIcon />{text}</>}
     </button>
   )
 }
@@ -188,11 +197,8 @@ ${htmlBody}
         <div>
           <span style={sectionLabel}>Share with Customer</span>
           <p style={{ fontSize: 13, color: C.textSub, margin: 0 }}>Clean, shareable link — no editing UI.</p>
-          <p style={{ fontSize: 12, color: C.textMuted, margin: '4px 0 0', fontFamily: C.mono }}>
-            {typeof window !== 'undefined' ? `${window.location.origin}/share/${id}` : ''}
-          </p>
         </div>
-        <CopyButton getText={() => typeof window !== 'undefined' ? `${window.location.origin}/share/${id}` : ''} text='⎘ Copy link' />
+        <CopyButton getText={() => typeof window !== 'undefined' ? `${window.location.origin}/share/${id}` : ''} text='Copy link' />
       </div>
 
       <p style={{ fontSize: 13, color: C.textMuted, textAlign: 'center', marginTop: 32 }}>
