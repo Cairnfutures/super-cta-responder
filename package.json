@@ -12,6 +12,8 @@
     "@anthropic-ai/sdk": "^0.39.0",
     "@sparticuz/chromium": "^149.0.0",
     "@supabase/supabase-js": "^2.49.4",
+    "html2canvas": "^1.4.1",
+    "jspdf": "^4.2.1",
     "marked": "^15.0.12",
     "next": "^16.2.9",
     "puppeteer-core": "^25.1.0",

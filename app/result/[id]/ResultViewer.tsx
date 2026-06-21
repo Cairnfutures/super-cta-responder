@@ -82,8 +82,38 @@ export default function ResultViewer({ id, title: initialTitle, onePagerMd: init
     { id: 'html',     label: 'HTML' },
   ]
 
-  function handleDownloadPDF() {
-    window.open(`/api/pdf/${id}`, '_blank')
+  async function handleDownloadPDF() {
+    const previewEl = document.getElementById('pdf-preview-content')
+    if (!previewEl) return
+    const [{ default: html2canvas }, { default: jsPDF }] = await Promise.all([
+      import('html2canvas'),
+      import('jspdf'),
+    ])
+    // Temporarily hide embeds and show print thumbs
+    previewEl.querySelectorAll('.tl-screen-embed').forEach((el: any) => el.style.display = 'none')
+    previewEl.querySelectorAll('.tl-print-thumb').forEach((el: any) => el.style.display = 'block')
+    const canvas = await html2canvas(previewEl, {
+      scale: 2,
+      useCORS: true,
+      backgroundColor: '#ffffff',
+      logging: false,
+    })
+    // Restore
+    previewEl.querySelectorAll('.tl-screen-embed').forEach((el: any) => el.style.display = '')
+    previewEl.querySelectorAll('.tl-print-thumb').forEach((el: any) => el.style.display = '')
+    const imgData = canvas.toDataURL('image/jpeg', 0.92)
+    const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' })
+    const pdfW = pdf.internal.pageSize.getWidth()
+    const pdfH = pdf.internal.pageSize.getHeight()
+    const imgH = (canvas.height * pdfW) / canvas.width
+    let y = 0
+    while (y < imgH) {
+      if (y > 0) pdf.addPage()
+      pdf.addImage(imgData, 'JPEG', 0, -y, pdfW, imgH)
+      y += pdfH
+    }
+    const filename = title.replace(/[^a-z0-9 ]/gi, '').replace(/\s+/g, '-').toLowerCase()
+    pdf.save(`${filename}.pdf`)
   }
 
   async function handleSave() {
@@ -146,7 +176,7 @@ export default function ResultViewer({ id, title: initialTitle, onePagerMd: init
         </div>
 
         {tab === 'preview' && (
-          <div ref={previewRef} contentEditable suppressContentEditableWarning
+          <div id="pdf-preview-content" ref={previewRef} contentEditable suppressContentEditableWarning
             style={{ fontSize: 15, color: C.text, lineHeight: 1.85, outline: 'none', minHeight: 200 }}
             onInput={e => { previewEdited.current = true; setBody((e.currentTarget as HTMLDivElement).innerHTML) }} />
         )}
