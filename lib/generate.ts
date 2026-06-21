@@ -303,6 +303,14 @@ export async function generateResponse(input: LeadInput): Promise<GeneratedRespo
     long:   'Total words for blocks 1–5: 500–580.',
   }
   const wordCountInstruction = wordCounts[length as string] || wordCounts.medium
+
+  // Per-block word targets scaled to length
+  const blockWords = {
+    short:  { hook: 25,  reframe: 25,  caseStudy: 50,  howItWorks: 20, roi: 35 },
+    medium: { hook: 40,  reframe: 35,  caseStudy: 70,  howItWorks: 30, roi: 55 },
+    long:   { hook: 65,  reframe: 55,  caseStudy: 110, howItWorks: 50, roi: 85 },
+  }
+  const bw = blockWords[length as keyof typeof blockWords] || blockWords.medium
   const domainMode = looksLikeDomain(company)
 
   const customEmbed = embedUrl ? embedFromUrl(embedUrl) : null
@@ -349,11 +357,11 @@ APPROVED ROI RANGES (Block 5 — pick 2–3 most applicable to their sector, alw
 - Tourism/Heritage/NGO: expanded digital reach to audiences who cannot attend in person; reduced dependency on in-person staff for orientation; multilingual visitor access
 
 BLOCK RULES:
-Block 1 — Personalised hook (~40 words): Open by referencing their role and organisation. Do NOT use the prospect's first name anywhere in the one-pager. Name their specific role-level pain — not the industry generally. Write like a peer, not a vendor. Do NOT start with "Hi", "Hello", or "Dear".
-Block 2 — Real-problem reframe (~35 words): One sentence naming the pain they think they have. One sentence reframing it to the bigger, budget-level pain.
-Block 3 — Case study (~70 words): Exactly one customer from the approved list, best match by sector. Format: company name + one framing sentence + one exact quote from the approved list + 1–2 outcome figures where available (ranges only, verified only). Include the URL if one is listed.
-Block 4 — How this would work (~90 words): Exactly three bullets. Each leads with what they GET (outcome), not the product feature name. Each bullet ends tied to their specific environment. Do NOT use product names: Scenario Builder, Pano to 360°, Media Editor, ThingLink AR.
-Block 5 — Likely outcomes (~55 words): Open with "For an organisation of [Company]'s scale, comparable customers typically see..." Use 2–3 ranges from the approved list. Close with "Based on outcomes from comparable [sector] customers."
+Block 1 — Personalised hook (~${bw.hook} words): Open by referencing their role and organisation. Do NOT use the prospect's first name anywhere in the one-pager. Name their specific role-level pain — not the industry generally. Write like a peer, not a vendor. Do NOT start with "Hi", "Hello", or "Dear".
+Block 2 — Real-problem reframe (~${bw.reframe} words): One sentence naming the pain they think they have. One sentence reframing it to the bigger, budget-level pain.
+Block 3 — Case study (~${bw.caseStudy} words): Exactly one customer from the approved list, best match by sector. Format: company name + one framing sentence + one exact quote from the approved list + 1–2 outcome figures where available (ranges only, verified only). Include the URL if one is listed.
+Block 4 — How this would work (~${bw.howItWorks * 3} words): Exactly three bullets. Each leads with what they GET (outcome), not the product feature name. Each bullet ends tied to their specific environment. Do NOT use product names: Scenario Builder, Pano to 360°, Media Editor, ThingLink AR.
+Block 5 — Likely outcomes (~${bw.roi} words): Open with "For an organisation of [Company]'s scale, comparable customers typically see..." Use 2–3 ranges from the approved list. Close with "Based on outcomes from comparable [sector] customers."
 
 TONE:
 - Warm and direct — a specialist talking to a real person, not a brochure
@@ -373,15 +381,15 @@ HARD RULES:
 OUTPUT — raw JSON only, no code block wrapper:
 {
   "title": "An Introduction to ThingLink for [Company Name]",
-  "hook": "Block 1 text (~40 words)",
-  "reframe": "Block 2 text (~35 words)",
+  "hook": "Block 1 text (~${bw.hook} words)",
+  "reframe": "Block 2 text (~${bw.reframe} words)",
   "case_study_customer": "Company Name — one framing sentence",
   "case_study_quote": "Exact quote from approved list",
   "case_study_attribution": "First name Last name, Role, Company",
   "case_study_outcomes": "Outcome 1 · Outcome 2 (ranges or verified figures only — null if none available)",
   "case_study_url": "URL from approved list or null",
-  "how_it_works": ["Bullet 1 (~30 words)", "Bullet 2 (~30 words)", "Bullet 3 (~30 words)"],
-  "roi": "Block 5 text (~55 words)",
+  "how_it_works": ["Bullet 1 (~${bw.howItWorks} words)", "Bullet 2 (~${bw.howItWorks} words)", "Bullet 3 (~${bw.howItWorks} words)"],
+  "roi": "Block 5 text (~${bw.roi} words)",
   "labels": {
     "customer_story": "Customer Story",
     "how_it_works_heading": "How This Would Work at",
