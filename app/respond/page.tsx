@@ -24,15 +24,16 @@ const LANGUAGE_OPTIONS = [
 
 const INTEREST_OPTIONS = [
   'K-12 Education',
+  'Technical & Vocational',
   'Higher Education',
   'Corporate Learning & Development',
+  'Government & Public Sector',
+  'Tourism & Heritage',
   'Healthcare Training',
   'Sales Enablement',
   'Onboarding & HR',
   'Customer Education',
-  'Tourism & Heritage',
-  'Government & Public Sector',
-  'Technical & Vocational',
+  'VR / XR Experiences',
   'Other',
 ]
 
