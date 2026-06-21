@@ -194,6 +194,12 @@ function blockHeader(title: string, name: string, role: string, company: string)
 </div>`
 }
 
+function blockMission(): string {
+  return `<div style="background:linear-gradient(135deg,rgba(255,179,71,0.18) 0%,rgba(204,128,224,0.18) 100%);border:1px solid rgba(204,128,224,0.25);border-radius:12px;padding:24px 28px;margin:0 0 14px;box-shadow:0 2px 16px rgba(204,128,224,0.12);font-family:${FONT};">
+  <p style="font-size:16px;font-weight:600;color:#111118;line-height:1.7;margin:0;">ThingLink helps you take the real world, its places, environments, situations, materials, and stories, and bring them to life as immersive and accessible learning experiences.</p>
+</div>`
+}
+
 function blockHook(text: string): string {
   return `<div style="background:#fff8f9;border-left:4px solid #FF7B8B;border-radius:0 12px 12px 0;padding:24px 28px;margin:0 0 14px;font-family:${FONT};">
   <p style="${BASE_TEXT}">${text}</p>
@@ -454,6 +460,7 @@ Use ROI ranges from the approved list that best match ${interest}.${languageInst
   const labels = parsed.labels || {}
   const blocks: string[] = [
     blockHeader(title, name, role, company),
+    blockMission(),
     blockHook(parsed.hook || ''),
     blockReframe(parsed.reframe || ''),
     blockCaseStudy(parsed, labels),
