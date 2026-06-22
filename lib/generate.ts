@@ -137,9 +137,24 @@ function normaliseExample(row: any): Example | null {
   return { name: row.name ?? '', embed_code: embed }
 }
 
-async function fetchExample(interest: string): Promise<Example | null> {
-  const keywords = INTEREST_TO_INDUSTRY[interest] || ['training']
+async function fetchExample(interest: string, useCaseIdea?: string): Promise<Example | null> {
+  // 1. If a use case idea is given, try matching against example names first
+  if (useCaseIdea) {
+    const useCaseWords = useCaseIdea.toLowerCase().split(/\s+/).filter(w => w.length > 3)
+    for (const word of useCaseWords) {
+      const { data } = await supabaseAdmin
+        .from('examples')
+        .select('*')
+        .ilike('name', `%${word}%`)
+        .limit(10)
+      const rows = (data || []).map(normaliseExample).filter(Boolean) as Example[]
+      console.log(`[fetchExample] use case word="${word}": ${rows.length} with embed`)
+      if (rows.length > 0) return rows[Math.floor(Math.random() * rows.length)]
+    }
+  }
 
+  // 2. Fall back to interest-based industry/project_type matching
+  const keywords = INTEREST_TO_INDUSTRY[interest] || ['training']
   for (const column of ['industry', 'project_type']) {
     for (const keyword of keywords) {
       const { data } = await supabaseAdmin
@@ -153,6 +168,7 @@ async function fetchExample(interest: string): Promise<Example | null> {
     }
   }
 
+  // 3. Last resort — random example
   const { data, error } = await supabaseAdmin.from('examples').select('*').limit(20)
   console.log('[fetchExample] fallback:', { count: data?.length ?? 0, error, cols: data?.[0] ? Object.keys(data[0]) : [], withEmbed: (data || []).map(normaliseExample).filter(Boolean).length })
   const rows = (data || []).map(normaliseExample).filter(Boolean) as Example[]
@@ -352,7 +368,7 @@ export async function generateResponse(input: LeadInput): Promise<GeneratedRespo
   const customEmbed = embedUrl ? embedFromUrl(embedUrl) : null
   const [testimonial, exampleBase, thumbnailUrl] = await Promise.all([
     fetchTestimonial(interest),
-    fetchExample(interest),
+    fetchExample(interest, useCaseIdea),
     fetchAirtableThumbnail(interest),
   ])
   const example = customEmbed
