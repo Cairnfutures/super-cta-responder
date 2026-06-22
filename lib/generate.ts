@@ -253,8 +253,8 @@ function blockCaseStudy(parsed: any, labels: any): string {
   return `<div style="background:#ffffff;border:1px solid #e4e4e9;border-radius:12px;padding:24px 28px;margin:0 0 14px;box-shadow:0 2px 16px rgba(0,0,0,0.07);font-family:${FONT};">
   <p style="${LABEL}color:#CC80E0;">${customerStoryLabel}</p>
   <p style="font-size:14px;font-weight:600;color:#111118;margin:0 0 14px;">${parsed.case_study_customer || ''}</p>
-  <p style="font-size:15px;color:#111118;line-height:1.8;margin:0 0 8px;font-style:italic;">"${cleanQuote(parsed.case_study_quote || '')}"</p>
-  <p style="font-size:13px;color:#6b6b80;margin:0;font-weight:600;">— ${parsed.case_study_attribution || 'ThingLink customer'}</p>
+  ${parsed.case_study_quote && parsed.case_study_quote !== 'null' ? `<p style="font-size:15px;color:#111118;line-height:1.8;margin:0 0 8px;font-style:italic;">"${cleanQuote(parsed.case_study_quote)}"</p>
+  <p style="font-size:13px;color:#6b6b80;margin:0;font-weight:600;">— ${parsed.case_study_attribution || 'ThingLink customer'}</p>` : ''}
   ${outcomes}
   ${caseStudyLink}
 </div>`
@@ -474,8 +474,8 @@ OUTPUT — your entire response must be a single raw JSON object. Start with { a
   "hook": "Block 1 text (~${bw.hook} words)",
   "reframe": "Block 2 text (~${bw.reframe} words)",
   "case_study_customer": "Company Name — one framing sentence",
-  "case_study_quote": "Exact quote from approved list",
-  "case_study_attribution": "First name Last name, Role, Company",
+  "case_study_quote": "Exact quote from approved list, or null if no quote exists for this case study",
+  "case_study_attribution": "First name Last name, Role, Company — or null if no quote",
   "case_study_outcomes": "Outcome 1 · Outcome 2 (ranges or verified figures only — null if none available)",
   "case_study_url": "URL from approved list or null",
   "how_it_works": ["Bullet 1 (~${bw.howItWorks} words)", "Bullet 2 (~${bw.howItWorks} words)", "Bullet 3 (~${bw.howItWorks} words)"],
