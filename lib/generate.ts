@@ -138,39 +138,45 @@ function normaliseExample(row: any): Example | null {
 }
 
 async function fetchExample(interest: string, useCaseIdea?: string): Promise<Example | null> {
-  // 1. If a use case idea is given, try matching against example names first
-  if (useCaseIdea) {
-    const useCaseWords = useCaseIdea.toLowerCase().split(/\s+/).filter(w => w.length > 3)
-    for (const word of useCaseWords) {
-      const { data } = await supabaseAdmin
-        .from('examples')
-        .select('*')
-        .ilike('name', `%${word}%`)
-        .limit(10)
-      const rows = (data || []).map(normaliseExample).filter(Boolean) as Example[]
-      console.log(`[fetchExample] use case word="${word}": ${rows.length} with embed`)
-      if (rows.length > 0) return rows[Math.floor(Math.random() * rows.length)]
-    }
-  }
-
-  // 2. Fall back to interest-based industry/project_type matching
+  // 1. Fetch a pool of examples matching the interest/sector
   const keywords = INTEREST_TO_INDUSTRY[interest] || ['training']
+  let pool: Example[] = []
+
   for (const column of ['industry', 'project_type']) {
     for (const keyword of keywords) {
       const { data } = await supabaseAdmin
         .from('examples')
         .select('*')
         .ilike(column, `%${keyword}%`)
-        .limit(10)
+        .limit(20)
       const rows = (data || []).map(normaliseExample).filter(Boolean) as Example[]
-      console.log(`[fetchExample] ${column}=${keyword}: ${data?.length ?? 0} rows, ${rows.length} with embed`)
-      if (rows.length > 0) return rows[Math.floor(Math.random() * rows.length)]
+      pool.push(...rows)
     }
   }
 
-  // 3. Last resort — random example
-  const { data, error } = await supabaseAdmin.from('examples').select('*').limit(20)
-  console.log('[fetchExample] fallback:', { count: data?.length ?? 0, error, cols: data?.[0] ? Object.keys(data[0]) : [], withEmbed: (data || []).map(normaliseExample).filter(Boolean).length })
+  // Deduplicate by name
+  const seen = new Set<string>()
+  pool = pool.filter(e => { if (seen.has(e.name)) return false; seen.add(e.name); return true })
+
+  // 2. If we have a pool and a use case idea, rank by keyword match score
+  if (pool.length > 0 && useCaseIdea) {
+    const words = useCaseIdea.toLowerCase().split(/\s+/).filter(w => w.length > 3)
+    const scored = pool.map(e => ({
+      example: e,
+      score: words.filter(w => e.name.toLowerCase().includes(w)).length,
+    }))
+    scored.sort((a, b) => b.score - a.score)
+    // Return from the top scorers (top 3 if available) to add some variety
+    const topScore = scored[0].score
+    const top = scored.filter(s => s.score === topScore).slice(0, 3)
+    return top[Math.floor(Math.random() * top.length)].example
+  }
+
+  // 3. Return random from pool if no use case idea
+  if (pool.length > 0) return pool[Math.floor(Math.random() * pool.length)]
+
+  // 4. Last resort — any example
+  const { data } = await supabaseAdmin.from('examples').select('*').limit(20)
   const rows = (data || []).map(normaliseExample).filter(Boolean) as Example[]
   if (rows.length === 0) return null
   return rows[Math.floor(Math.random() * rows.length)]
