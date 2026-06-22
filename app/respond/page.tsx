@@ -222,10 +222,6 @@ export default function RespondPage() {
                   </select>
                 </div>
                 <div>
-                  <label style={{ fontSize: 13, color: C.textSub, display: 'block', marginBottom: 5 }}>Initial use case idea</label>
-                  <input style={field} value={form.useCaseIdea} onChange={e => set('useCaseIdea', e.target.value)} placeholder="e.g. virtual tour, 360° lab, onboarding module" />
-                </div>
-                <div>
                   <label style={{ fontSize: 13, color: C.textSub, display: 'block', marginBottom: 5 }}>Example to embed (paste embed code from ThingLink Share dialog)</label>
                   <textarea style={{ ...field, fontFamily: 'monospace', fontSize: 12, resize: 'vertical' as any }} rows={3} value={form.embedUrl} onChange={e => set('embedUrl', e.target.value)} placeholder="<iframe width='960' height='640' ..." />
                 </div>
