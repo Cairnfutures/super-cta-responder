@@ -24,6 +24,7 @@ const LANGUAGE_OPTIONS = [
 
 const INTEREST_OPTIONS = [
   'K-12 Education',
+  'Student Creation',
   'Technical & Vocational',
   'Higher Education',
   'Corporate Learning & Development',

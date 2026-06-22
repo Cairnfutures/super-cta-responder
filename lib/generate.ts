@@ -29,6 +29,7 @@ export interface GeneratedResponse {
 // ─────────────────────────────────────────
 const INTEREST_TO_SECTORS: Record<string, string[]> = {
   'K-12 Education':                      ['k12'],
+  'Student Creation':                    ['k12', 'higher_edu'],
   'Higher Education':                     ['higher_edu'],
   'Corporate Learning & Development':     ['corporate', 'manufacturing'],
   'Healthcare Training':                  ['higher_edu', 'vocational'],
@@ -44,6 +45,7 @@ const INTEREST_TO_SECTORS: Record<string, string[]> = {
 
 const INTEREST_TO_INDUSTRY: Record<string, string[]> = {
   'K-12 Education':                      ['k12', 'Education'],
+  'Student Creation':                    ['Student Creation', 'k12', 'Education'],
   'Higher Education':                     ['Higher Ed', 'Education', 'Vocational'],
   'Corporate Learning & Development':     ['General Enterprise', 'Manufacturing', 'Technology'],
   'Healthcare Training':                  ['Healthcare'],
