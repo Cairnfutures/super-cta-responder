@@ -226,9 +226,12 @@ export default function ResultViewer({ id, title: initialTitle, onePagerMd: init
         </div>
 
         {tab === 'preview' && (
-          <div id="pdf-preview-content" ref={previewRef} contentEditable suppressContentEditableWarning
-            style={{ fontSize: 15, color: C.text, lineHeight: 1.85, outline: 'none', minHeight: 200 }}
-            onInput={e => { previewEdited.current = true; setBody((e.currentTarget as HTMLDivElement).innerHTML) }} />
+          <>
+            <style>{`#pdf-preview-content iframe { pointer-events: none; }`}</style>
+            <div id="pdf-preview-content" ref={previewRef} contentEditable suppressContentEditableWarning
+              style={{ fontSize: 15, color: C.text, lineHeight: 1.85, outline: 'none', minHeight: 200 }}
+              onInput={e => { previewEdited.current = true; setBody((e.currentTarget as HTMLDivElement).innerHTML) }} />
+          </>
         )}
 
         {tab === 'markdown' && (
