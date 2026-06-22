@@ -315,11 +315,24 @@ function blockHowItWorks(bullets: string[], company: string, labels: any): strin
 </div>`
 }
 
-function blockROI(text: string, labels: any): string {
+function blockROI(roi: string | string[], labels: any, competence?: string, source?: string): string {
   const heading = labels?.likely_outcomes || 'Likely Outcomes'
+  const bullets = Array.isArray(roi) ? roi : [roi]
+  const bulletHtml = bullets.map(b =>
+    `<div style="display:flex;align-items:baseline;gap:10px;margin:0 0 14px;">
+      <span style="color:#5CE8D4;font-size:20px;font-weight:800;line-height:1;">·</span>
+      <p style="font-size:17px;font-weight:700;color:#111118;line-height:1.4;margin:0;">${b}</p>
+    </div>`
+  ).join('')
+  const competenceLine = competence
+    ? `<p style="font-size:14px;color:#444460;line-height:1.7;margin:16px 0 0;font-style:italic;">${competence}</p>`
+    : ''
+  const sourceLine = source
+    ? `<p style="font-size:12px;color:#9999aa;margin:12px 0 0;">${source}</p>`
+    : ''
   return `<div style="background:#f0fff8;border-left:4px solid #5CE8D4;border-radius:0 12px 12px 0;padding:24px 28px;margin:0 0 14px;font-family:${FONT};">
   <p style="${LABEL}color:#5CE8D4;">${heading}</p>
-  <p style="${BASE_TEXT}">${text}</p>
+  ${bulletHtml}${competenceLine}${sourceLine}
 </div>`
 }
 
@@ -448,7 +461,7 @@ Block 1 — Personalised hook (~${bw.hook} words): Open by referencing their rol
 Block 2 — Real-problem reframe (~${bw.reframe} words): Do NOT describe symptoms or restate the surface pain. Name the structural mechanism that causes the problem — the actual reason it persists at scale (e.g. silos, no compounding across sites, rebuilding from scratch each time, dependency on individual champions). Use the prospect's vocabulary — their sector's words for locations, teams, and systems. The reframe must feel like an insight they haven't quite articulated, not a problem statement they already know.
 Block 3 — Case study (~${bw.caseStudy} words): Exactly one customer from the approved list, best match by sector. Format: company name + one framing sentence + one exact quote from the approved list + 1–2 outcome figures where available (ranges only, verified only). Include the URL if one is listed.
 Block 4 — How this would work (~${bw.howItWorks * 3} words): Exactly three bullets. Each leads with what they GET (outcome), not the product feature name. Each bullet ends tied to their specific environment. Do NOT use product names: Scenario Builder, Pano to 360°, Media Editor, ThingLink AR.
-Block 5 — Likely outcomes (~${bw.roi} words): Open with "For an organisation of [Company]'s scale, comparable customers typically see..." Use 2–3 ranges from the approved list. Close with "Based on outcomes from comparable [sector] customers."
+Block 5 — Likely outcomes: Write exactly 3 bullet strings, each a single stat as a range (e.g. "30 to 50% reduction in teacher prep time per module"). Numbers visually prominent — do not bury them in prose. All numbers must be ranges from the approved list, never single-point claims. Then write one mandatory sentence naming the competence dimensions ThingLink scenarios develop (situational awareness, decision-making, procedural knowledge, conceptual understanding, problem-solving, communication, domain-specific reasoning — pick the most relevant subset for their sector). Close with a source line naming 2–3 specific comparable customers by name, not just "comparable [sector] customers".
 
 TONE:
 - Warm and direct — a specialist talking to a real person, not a brochure
@@ -479,7 +492,9 @@ OUTPUT — your entire response must be a single raw JSON object. Start with { a
   "case_study_outcomes": "Outcome 1 · Outcome 2 (ranges or verified figures only — null if none available)",
   "case_study_url": "URL from approved list or null",
   "how_it_works": ["Bullet 1 (~${bw.howItWorks} words)", "Bullet 2 (~${bw.howItWorks} words)", "Bullet 3 (~${bw.howItWorks} words)"],
-  "roi": "Block 5 text (~${bw.roi} words)",
+  "roi": ["Stat 1 as range", "Stat 2 as range", "Stat 3 as range"],
+  "roi_competence": "ThingLink scenarios develop [relevant competence dimensions] — one sentence.",
+  "roi_source": "Based on outcomes from ThingLink deployments at [Customer A], [Customer B], and [Customer C].",
   "example_bridge": "One sentence connecting the prospect's use case to the example shown — e.g. 'Here's a real example from a similar organisation to show what this looks like in practice.'",
   "labels": {
     "prepared_for": "Prepared for the",
@@ -566,7 +581,7 @@ Use ROI ranges from the approved list that best match ${interest}.${languageInst
     blockCaseStudy(parsed, labels),
     blockExample(example, labels.thinglink_in_action, parsed.example_bridge),
     blockHowItWorks(parsed.how_it_works || [], company, labels),
-    blockROI(parsed.roi || '', labels),
+    blockROI(parsed.roi || [], labels, parsed.roi_competence, parsed.roi_source),
   ]
 
   if (testimonial) {
