@@ -422,9 +422,11 @@ HARD RULES:
 - Do NOT invent case studies, statistics, or URLs not in the approved list
 - Do NOT wrap the JSON in markdown code blocks or backticks
 - Do NOT use horizontal rules (---)
+- Do NOT research, browse, or look up the company — work only from the information provided
+- Do NOT write any introductory text, reasoning, or explanation — output ONLY the JSON object, starting with { and ending with }
 - ${wordCountInstruction}
 
-OUTPUT — raw JSON only, no code block wrapper:
+OUTPUT — your entire response must be a single raw JSON object. Start with { and end with }. No preamble, no explanation, no research notes, no markdown:
 {
   "title": "An Introduction to ThingLink for [Company Name]",
   "hook": "Block 1 text (~${bw.hook} words)",
