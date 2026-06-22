@@ -460,7 +460,7 @@ Also include a "testimonial" object if a testimonial is provided below — trans
 If no testimonial is provided, omit the "testimonial" key entirely.`
 
   const domainInstruction = domainMode
-    ? `\n\nIMPORTANT: The company field contains a domain name (${company}). Infer the full organisation name, sector, size, and country from this domain. Use the inferred organisation name (not the raw domain) in all copy — in the title, in block 4 ("How this would work at [Org Name]"), and throughout. State your inference briefly in the title field, e.g. "An Introduction to ThingLink for Acme Corp" not "An Introduction to ThingLink for acme.com".`
+    ? `\n\nIMPORTANT: The company field contains a domain name (${company}). Infer the full organisation name from this domain and use it cleanly throughout — in the title, block 4, and all copy. The title must be exactly "An Introduction to ThingLink for [Inferred Org Name]" with no extra parentheses, notes, or explanation.`
     : ''
 
   const testimonialContext = testimonial && language !== 'English'
