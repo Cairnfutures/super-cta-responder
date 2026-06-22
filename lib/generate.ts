@@ -256,7 +256,7 @@ function blockExample(example: Example | null): string {
 
   return `<div style="background:linear-gradient(135deg,rgba(108,99,255,0.10) 0%,rgba(92,232,212,0.10) 100%);border:1px solid rgba(108,99,255,0.20);border-radius:12px;padding:24px 28px;margin:0 0 14px;box-shadow:0 2px 16px rgba(108,99,255,0.12);font-family:${FONT};">
   <p style="${LABEL}color:#6c63ff;">ThingLink in Action</p>
-  ${example.name ? `<p style="font-size:14px;font-weight:600;color:#111118;margin:0 0 16px;">${example.name}</p>` : ''}
+  ${example.name ? `<p style="font-size:15px;font-weight:400;color:#6b6b80;line-height:1.7;margin:0 0 14px;">${example.name}</p>` : ''}
   ${embedSection}
   ${thumbSection}
 </div>`
