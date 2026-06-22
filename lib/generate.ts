@@ -134,7 +134,7 @@ async function fetchAirtableThumbnail(interest: string): Promise<string | null> 
 function normaliseExample(row: any): Example | null {
   const embed = row['embed_code'] ?? row['embed-code'] ?? null
   if (!embed) return null
-  return { name: row.name ?? '', embed_code: embed }
+  return { name: row.name ?? '', embed_code: embed, project_type: row.project_type ?? '' } as any
 }
 
 async function fetchExample(interest: string, useCaseIdea?: string): Promise<Example | null> {
@@ -158,15 +158,17 @@ async function fetchExample(interest: string, useCaseIdea?: string): Promise<Exa
   const seen = new Set<string>()
   pool = pool.filter(e => { if (seen.has(e.name)) return false; seen.add(e.name); return true })
 
-  // 2. If we have a pool and a use case idea, rank by keyword match score
+  // 2. If we have a pool and a use case idea, rank by keyword match score across name + project_type
   if (pool.length > 0 && useCaseIdea) {
-    const words = useCaseIdea.toLowerCase().split(/\s+/).filter(w => w.length > 3)
-    const scored = pool.map(e => ({
-      example: e,
-      score: words.filter(w => e.name.toLowerCase().includes(w)).length,
-    }))
+    const words = useCaseIdea.toLowerCase().split(/\s+/).filter(w => w.length > 2)
+    const scored = pool.map(e => {
+      const searchText = [e.name, (e as any).project_type || ''].join(' ').toLowerCase()
+      return {
+        example: e,
+        score: words.filter(w => searchText.includes(w)).length,
+      }
+    })
     scored.sort((a, b) => b.score - a.score)
-    // Return from the top scorers (top 3 if available) to add some variety
     const topScore = scored[0].score
     const top = scored.filter(s => s.score === topScore).slice(0, 3)
     return top[Math.floor(Math.random() * top.length)].example
