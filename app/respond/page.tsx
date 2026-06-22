@@ -225,10 +225,6 @@ export default function RespondPage() {
                   <label style={{ fontSize: 13, color: C.textSub, display: 'block', marginBottom: 5 }}>Example to embed (paste embed code from ThingLink Share dialog)</label>
                   <textarea style={{ ...field, fontFamily: 'monospace', fontSize: 12, resize: 'vertical' as any }} rows={3} value={form.embedUrl} onChange={e => set('embedUrl', e.target.value)} placeholder="<iframe width='960' height='640' ..." />
                 </div>
-                <div>
-                  <label style={{ fontSize: 13, color: C.textSub, display: 'block', marginBottom: 5 }}>Source / campaign</label>
-                  <input style={field} value={form.source} onChange={e => set('source', e.target.value)} placeholder="e.g. LinkedIn, email campaign" />
-                </div>
               </div>
             </div>
 
