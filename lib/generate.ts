@@ -269,7 +269,15 @@ function blockExample(example: Example | null, thingLinkInAction?: string, bridg
   const tlUrl = extractThingLinkUrl(example.embed_code)
   const thumbUrl = (example as any).thumbnail_url
 
-  const embedSection = `<div class="tl-screen-embed" style="margin:0 0 12px;overflow:hidden;border-radius:8px;">${example.embed_code.replace(/width=["']?\d+["']?/g, 'width="100%"').replace(/height=["']?\d+["']?/g, 'height="500"')}</div>`
+  // Normalise embed code: convert scene/video/media URLs to embeddable card format, fix protocol-relative script URL
+  const normalisedEmbed = example.embed_code
+    .replace(/thinglink\.com\/scene\//g, 'thinglink.com/card/')
+    .replace(/thinglink\.com\/video\//g, 'thinglink.com/videocard/')
+    .replace(/thinglink\.com\/media\//g, 'thinglink.com/mediacard/')
+    .replace(/["']\/\/cdn\.thinglink\.me/g, '"https://cdn.thinglink.me')
+    .replace(/width=["']?\d+["']?/g, 'width="100%"')
+    .replace(/height=["']?\d+["']?/g, 'height="500"')
+  const embedSection = `<div class="tl-screen-embed" style="margin:0 0 12px;overflow:hidden;border-radius:8px;">${normalisedEmbed}</div>`
 
   const thumbSection = thumbUrl
     ? `<div class="tl-print-thumb" style="display:none;margin:0 0 12px;">
