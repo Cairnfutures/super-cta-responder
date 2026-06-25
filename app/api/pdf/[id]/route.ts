@@ -75,9 +75,9 @@ function buildPdfHtml(body: string, title: string): string {
   * { box-sizing: border-box; }
   body {
     margin: 0;
-    padding: 20px 24px;
+    padding: 32px 40px;
     font-family: 'Inter', sans-serif;
-    background: #ffffff;
+    background: #f0f0f0;
     color: #111118;
     -webkit-print-color-adjust: exact;
     print-color-adjust: exact;
