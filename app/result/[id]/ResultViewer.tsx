@@ -154,13 +154,17 @@ export default function ResultViewer({ id, title: initialTitle, onePagerMd: init
     })
     const imgData = canvas.toDataURL('image/jpeg', 0.92)
     const pdfW = 210 // A4 width in mm
-    const pdfH = Math.ceil((canvas.height * pdfW) / canvas.width)
+    const margin = 12 // mm — white margin on all sides
+    const contentW = pdfW - 2 * margin
+    const contentH = Math.ceil((canvas.height * contentW) / canvas.width)
+    const pdfH = contentH + 2 * margin
+    const scale = contentW / pdfW // ratio image is scaled by vs original full-width
     const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: [pdfW, pdfH] })
-    pdf.addImage(imgData, 'JPEG', 0, 0, pdfW, pdfH)
+    pdf.addImage(imgData, 'JPEG', margin, margin, contentW, contentH)
 
     // Overlay clickable link annotations (jsPDF preserves these as real PDF links)
     linkAnnotations.forEach(({ url, x, y, w, h }) => {
-      pdf.link(x, y, w, h, { url })
+      pdf.link(x * scale + margin, y * scale + margin, w * scale, h * scale, { url })
     })
     const filename = title.replace(/[^a-z0-9 ]/gi, '').replace(/\s+/g, '-').toLowerCase()
     pdf.save(`${filename}.pdf`)
