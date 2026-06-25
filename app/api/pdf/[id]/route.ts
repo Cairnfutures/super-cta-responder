@@ -29,7 +29,7 @@ export async function GET(
 
     const browser = await puppeteer.launch({
       args: chromium.args,
-      defaultViewport: { width: 1200, height: 800 },
+      defaultViewport: { width: 794, height: 1123 },
       executablePath: await chromium.executablePath(),
       headless: true,
     })
@@ -75,7 +75,7 @@ function buildPdfHtml(body: string, title: string): string {
   * { box-sizing: border-box; }
   body {
     margin: 0;
-    padding: 16px 20px;
+    padding: 20px 24px;
     font-family: 'Inter', sans-serif;
     background: #ffffff;
     color: #111118;
