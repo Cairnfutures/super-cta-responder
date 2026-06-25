@@ -75,12 +75,15 @@ function buildPdfHtml(body: string, title: string): string {
   * { box-sizing: border-box; }
   body {
     margin: 0;
-    padding: 32px 40px;
+    padding: 0;
     font-family: 'Inter', sans-serif;
-    background: #f0f0f0;
+    background: #ffffff;
     color: #111118;
     -webkit-print-color-adjust: exact;
     print-color-adjust: exact;
+  }
+  .page-wrapper {
+    padding: 24px 28px;
   }
   .tl-screen-embed { display: none !important; }
   .tl-print-thumb { display: block !important; }
@@ -90,7 +93,9 @@ function buildPdfHtml(body: string, title: string): string {
 </style>
 </head>
 <body>
+<div class="page-wrapper">
 ${body}
+</div>
 </body>
 </html>`
 }
