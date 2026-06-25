@@ -40,7 +40,7 @@ export async function GET(
     const pdf = await page.pdf({
       format: 'A4',
       printBackground: true,
-      margin: { top: '14mm', bottom: '14mm', left: '14mm', right: '14mm' },
+      margin: { top: '20mm', bottom: '20mm', left: '22mm', right: '22mm' },
     })
 
     await browser.close()
