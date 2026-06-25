@@ -40,7 +40,7 @@ export async function GET(
     const pdf = await page.pdf({
       format: 'A4',
       printBackground: true,
-      margin: { top: '20mm', bottom: '20mm', left: '22mm', right: '22mm' },
+      margin: { top: '14mm', bottom: '14mm', left: '14mm', right: '14mm' },
     })
 
     await browser.close()
@@ -75,7 +75,7 @@ function buildPdfHtml(body: string, title: string): string {
   * { box-sizing: border-box; }
   body {
     margin: 0;
-    padding: 0;
+    padding: 16px 20px;
     font-family: 'Inter', sans-serif;
     background: #ffffff;
     color: #111118;
