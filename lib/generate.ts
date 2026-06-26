@@ -177,11 +177,8 @@ async function fetchExample(interest: string, useCaseIdea?: string): Promise<Exa
   // 3. Return random from pool if no use case idea
   if (pool.length > 0) return pool[Math.floor(Math.random() * pool.length)]
 
-  // 4. Last resort — any example
-  const { data } = await supabaseAdmin.from('examples').select('*').limit(20)
-  const rows = (data || []).map(normaliseExample).filter(Boolean) as Example[]
-  if (rows.length === 0) return null
-  return rows[Math.floor(Math.random() * rows.length)]
+  // 4. No relevant match found — return null rather than show an unrelated example
+  return null
 }
 
 // ─────────────────────────────────────────
