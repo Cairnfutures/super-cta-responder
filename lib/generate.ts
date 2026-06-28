@@ -46,7 +46,7 @@ const INTEREST_TO_SECTORS: Record<string, string[]> = {
 const INTEREST_TO_INDUSTRY: Record<string, string[]> = {
   'K-12 Education':                      ['k12', 'Education'],
   'Student Creation':                    ['Student Creation', 'k12', 'Education'],
-  'Higher Education':                     ['Higher Ed', 'Education', 'Vocational'],
+  'Higher Education':                     ['Higher Ed', 'University', 'Education'],
   'Corporate Learning & Development':     ['General Enterprise', 'Manufacturing', 'Technology'],
   'Healthcare Training':                  ['Healthcare'],
   'Sales Enablement':                     ['General Enterprise', 'Retail', 'Technology'],
@@ -55,7 +55,7 @@ const INTEREST_TO_INDUSTRY: Record<string, string[]> = {
   'Tourism & Heritage':                   ['Museum', 'Travel', 'Hospitality', 'Culture'],
   'Government & Public Sector':           ['Energy', 'Water', 'Charity', 'Transportation'],
   'VR / XR Experiences':                 ['General Enterprise', 'Manufacturing', 'Education'],
-  'Technical & Vocational':              ['Vocational', 'Manufacturing', 'Technical', 'TVET'],
+  'Technical & Vocational':              ['Vocational', 'Manufacturing', 'TVET', 'Industrial'],
   'Other':                                ['General Enterprise', 'Education'],
 }
 
